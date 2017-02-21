@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+
+    <t t-extend="ProductListWidget">
+        <t t-jquery="div.product-list" t-operation="after">
+            <t t-if="widget.pos.product_list.length == 0 ">
+                <div id="loading" align="center" style="font-size:20px;vertical-align:middle;">
+                    <img src="/pos_prod_load_background/static/src/img/loader.gif/" />
+                <br/>Loading...</div>
+            </t>
+        </t>
+    </t>
+
+</templates>

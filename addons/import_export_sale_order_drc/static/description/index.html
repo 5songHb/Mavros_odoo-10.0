@@ -1,0 +1,193 @@
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <h2 class="oe_slogan">Import/Export Sale Order lines by Excel</h2>
+    </div>
+</section>
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <h3 class="oe_slogan">Requirements</h3>
+        <div class="oe_span12">
+            <center>
+                <p class='oe_mt32'>
+                    Before you install this module first download xlrd library from <a href="https://pypi.python.org/pypi/xlrd" target="new">Here</a> and install on your system.<br/>
+                    <strong>OR</strong><br/>
+                    Run <strong> sudo pip install xlrd</strong> command in Terminal.
+                </p>
+            </center>
+        </div>
+    </div>
+</section>
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <h3 class="oe_slogan">Sales Configuration to manage large order by Excel</h3>
+        <div class="oe_span6 text-justify">
+            <p>
+                After Installing this module go to Sales->Configurations->Settings.
+            </p>
+            <p >
+            There is a option "Import Sale Order Line from Excel file?".
+            </p>
+            <p>
+              If you select that option then you will see option "Import/Export Sale Order lines" in "Action" section at the top bar in Purchase Order form view.
+            </p>
+        </div>
+        <div class="oe_span6">
+             <img class="oe_picture oe_screenshot" src="sale_config.png"/>
+        </div>
+        </div>
+</section>
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <h3 class="oe_slogan">Import/Export Order lines from Excel</h3>
+        <div class="oe_span6">
+             <img class="oe_picture oe_screenshot" src="import_export_wizard.png"/>
+        </div>
+        <div class="oe_span6 text-justify">
+            <p>
+               By clicking on "Import/Export Sale Order lines", you will see a pop-up to Import / Export Excel file.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <h3 class="oe_slogan">Rules for Import Order Lines</h3>
+        <div class="oe_span6 text-justify">
+            <br/>
+            <ul>
+                <li>
+                    You can import order lines only in case of when your Order is in <strong>Draft</strong> state.
+                </li>
+                <li>
+                    You can import only <strong>.xls</strong> or <strong>.xlsx</strong> file.
+                </li>
+                <li>
+                    Please make sure that your file's column headers must be <strong>Code, Qty, Name, Price and Discount.</strong/>
+                </li>
+                <li>
+                    <strong>Code</strong> column is mandatory while import.
+                </li>
+                <li>
+                    <strong>Code</strong> column value must be match to your product internal reference.
+                </li>
+
+            </ul>
+        </div>
+    </div>
+</section>
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <h3 class="oe_slogan">Set Default Qty</h3>
+        </div>
+    </div>
+    <div class="oe_row oe_spaced">
+        <div class="oe_span6 text-justify">
+            <p>
+               In order to set default Qty, user need to go to Settings > Technical > Parameters > System parameters and find the key "Defauly Qty To Import Product in Sale Order" and set the value as per requirement.
+            </p>
+        </div>
+        <div class="oe_span6">
+             <img class="oe_picture oe_screenshot" src="system_parameter.png"/>
+        </div>
+    </div>
+</section>
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <h3 class="oe_slogan">Validate Import File</h3>
+        <div class="oe_span6">
+            <img class="oe_picture oe_screenshot" src="validate-button.png"/>
+        </div>
+        <div class="oe_span6 text-justify">
+            <strong>Click on this button it will validate:</strong>
+            <ul>
+                <li>
+                    File is Selected?
+                </li>
+                <li>
+                    Order is in draft mode or not?
+                </li>
+                <li>
+                    Selected file is <strong>.xls</strong> or <strong>.xlsx</strong>?
+                </li>
+                <li>
+                    Mandatory column is exist or not?
+                </li>
+                <li>
+                    Column name is valid or not?
+                </li>
+            </ul>
+            <br/>
+            <strong>
+                If there is any validation error than system will pop-up Validation Error Message.<br/>
+                If there is no any validation error "Import" button will be visible.
+            </strong>
+        </div>
+    </div>
+</section>
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <h3 class="oe_slogan">Import File</h3>
+        <div class="oe_span4">
+             <img class="oe_picture oe_screenshot" src="SO_import_excel.png"/>
+        </div>
+        <div class="oe_span4">
+            <center> <h3>After Importing File</h3></center>
+        </div>
+        <div class="oe_span4">
+             <img class="oe_picture oe_screenshot" src="after-import.png"/>
+        </div>
+    </div>
+</section>
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <h3 class="oe_slogan">Not Imported Product List</h3>
+        <div class="oe_span6 text-justify">
+            <p>
+                If Product Code or ID is not found than it will list not imported Product or ID.
+            </p>
+        </div>
+        <div class="oe_span6">
+             <img class="oe_picture oe_screenshot" src="import-errors.png"/>
+        </div>
+    </div>
+</section>
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <h3 class="oe_slogan">Export Order Lines</h3>
+        <div class="oe_span4">
+             <img class="oe_picture oe_screenshot" src="export-button.png"/>
+        </div>
+        <div class="oe_span4 text-justify" style="margin-top:50px;">
+            <center>
+                After click on <strong>Export Template</strong> button.
+            </center>
+        </div>
+        <div class="oe_span4">
+            <img class="oe_picture oe_screenshot" src="exported-file.png"/>
+        </div>
+    </div>
+</section>
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <h3 class="oe_slogan">Import/Update Order Lines with Single Import</h3>
+        <div class="oe_span6">
+             <img class="oe_picture oe_screenshot" src="import-update.png"/>
+        </div>
+        <div class="oe_span6 text-justify">
+            <p>
+                Lines which you wants import keep <strong>ID</strong> blank.<br/>
+                Lines which you wants to update don't remove or change value of <strong>ID</strong>.
+            </p>
+        </div>
+    </div>
+</section>

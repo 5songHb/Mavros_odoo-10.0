@@ -1,0 +1,339 @@
+<odoo>
+  <data>
+
+<!--      <record id="show_internal_category_product_form_view" model="ir.ui.view">
+     <field name="name">product.internal.category.show.product.form</field>
+     <field name="model">product.template</field>
+     <field name="inherit_id" ref="product.product_template_only_form_view"/>
+     <field name="arch" type="xml">
+      <xpath expr="//field[@name='default_code']" position="after">
+         <field name="categ_id" string="Internal Category"/>
+        </xpath>
+      </field>
+    </record> -->
+
+        <record id="product_barcode_form_view" model="ir.ui.view">
+            <field name="name">product.product.barcode.form</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="product.product_normal_form_view"/>
+            <field name="arch" type="xml">
+              <field name="barcode" position="replace"/>
+            </field>
+          </record>
+
+
+
+    <record id="view_product_extends_form" model="ir.ui.view">
+        <field name="name">product.template.extends.form</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="/form/sheet/notebook/page/group" position="after">
+             <group col="4">
+             <field name="manufacturer"/>
+             <field name="barcode_carton"/>
+             <field name="pack"/>
+             <field name="cbm"/>
+             <field name="pack_inner"/>
+             <field name="original_price"/>
+             <field name="advertising"/>
+             <field name="form_num"/>
+             
+             <field name="counted" colspan="4"/>
+             <field name="ytd_sales_retail"/>
+             <field name="ytd_wholesales"/>
+             </group>
+
+             <group>
+               <separator string="Vendors"/>
+             </group>
+             <group>
+              <field name="seller_ids" context="{'default_product_tmpl_id': context.get('product_tmpl_id', active_id)}" nolabel="1"/>
+             </group>
+            </xpath>
+          <field name="list_price" position="after">
+            <field name="brand"/>
+            <field name="category"/>
+          </field>
+
+        </field>
+
+    </record>
+
+    <record id="view_product_extends_form_invoice_policy" model="ir.ui.view">
+        <field name="name">product.template.extends.invoice.form</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="sale.product_template_form_view_invoice_policy"/>
+        <field name="arch" type="xml">
+          <field name="invoice_policy" position="replace">
+          </field>
+        </field>
+      </record>
+
+      <record id="view_product_extends_form_purchase_method" model="ir.ui.view">
+          <field name="name">product.template.extends.purchase_method.form</field>
+          <field name="model">product.template</field>
+          <field name="inherit_id" ref="purchase.view_product_supplier_inherit"/>
+          <field name="arch" type="xml">
+            <field name="purchase_method" position="replace">
+            </field>
+          </field>
+        </record>
+
+
+      <record id="view_customer_extends_form_configuration" model="ir.ui.view">
+          <field name="name">res.partner.cinfiguration.form</field>
+          <field name="model">res.partner</field>
+          <field name="inherit_id" ref="base.view_partner_form"/>
+          <field name="arch" type="xml">
+            <field name="user_id" position="replace"/>
+            <field name="ref" position="replace"/>
+            <xpath expr="/form/sheet/notebook/page" position="before">              
+              <page string="Customer Configuration" autofocus="autofocus" attrs="{'invisible':[('customer','=',False)] }">
+                        <group name="inherit_acc_sale" col="4">
+                          <field name="credit" colspan="4"/>
+                          <field name="ref"/>
+                           <field name="user_id"/>
+                           <field name="customer_form_num"/>
+                           <field name="credit_limit"/>
+                            <field name="property_payment_term_id" widget="selection"/>
+                            <field name="level"/>
+                            <field name="consignment_amount"/>
+                        </group>
+
+                        <group>
+                          <field name="customer_type"/>
+                        </group>
+                        <group>
+                          <field name="property_product_pricelist" groups="product.group_sale_pricelist" attrs="{'invisible': [('is_company','=',False),('parent_id','!=',False)]}"/>
+                        </group>
+           <separator string="Customer Discounts"/>  
+          <field name="offer_type">
+            <tree editable="bottom">
+              <field name="group_name"/>
+              <field name="discount"/>
+              <field name="product_brand"/>
+              <field name="product_category" />
+            </tree>
+          </field>
+           <separator string="Children Birthday"/>
+            <field name="customer_children">
+              <tree editable="bottom">
+                <field name="child_name"/>
+                <field name="child_dob"/>
+              </tree>
+            </field>
+                
+              </page>
+            </xpath>
+          </field>
+        </record>
+
+
+        <record id="view_customer_extends_total_receivalbe" model="ir.ui.view">
+            <field name="name">res.partner.total_receivalbe.form</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="account.view_partner_property_form"/>
+            <field name="arch" type="xml">
+              <group  name="acc_sale" position="replace"></group>
+            </field>
+          </record>
+
+          <record id="view_customer_extends_mail" model="ir.ui.view">
+              <field name="name">res.partner.mail.form</field>
+              <field name="model">res.partner</field>
+              <field name="inherit_id" ref="mail.view_emails_partner_info_form"/>
+              <field name="arch" type="xml">
+                      <field name='notify_email' position="replace"/>
+                    <field name="opt_out" position="replace"/>
+              </field>
+            </record>
+
+
+          <record id="edit_product_code_product_supplierinfo_tree_view" model="ir.ui.view">
+              <field name="name">product.supplierinfo.product_code.tree.view</field>
+              <field name="model">product.supplierinfo</field>
+              <field name="inherit_id" ref="product.product_supplierinfo_tree_view"/>
+              <field name="arch" type="xml">
+                      <field name="name" position="after">
+                        <field name="product_code"/>
+                      </field>
+                    </field>
+                  </record>
+
+
+              <record id="view_product_brand_form" model="ir.ui.view">
+                <field name="name">product.brand.form</field>
+                <field name="model">product.brand</field>
+                <field name="arch" type="xml">
+                  <form >
+                    <sheet>
+                      <group name="Brand name">
+                      <field name="name"/>
+                    </group>
+                    </sheet>
+                  </form>
+                </field>
+              </record>
+    
+    <record model="ir.ui.view" id="product_brand_list">
+      <field name="name">product_btand.list</field>
+      <field name="model">product.brand</field>
+      <field name="arch" type="xml">
+        <tree>
+          <field name="name"/>
+        </tree>
+      </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="product_brand_action_window">
+      <field name="name">Product Brand</field>
+      <field name="res_model">product.brand</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+
+      <menuitem action="product_brand_action_window" id="menu_purchase_product_brand" parent="purchase.menu_product_in_config_purchase" name="Product Brands" />
+
+
+             <menuitem action="product_brand_action_window" id="menu_stock_product_brand" parent="stock.menu_product_in_config_stock" name="Product Brands" />
+
+             <record id="action_invoice_customer_refund" model="ir.actions.act_window">
+                 <field name="name">Sale Returns</field>
+                 <field name="res_model">account.invoice</field>
+                 <field name="view_type">form</field>
+                 <field name="view_mode">tree,kanban,form,calendar,pivot,graph</field>
+                 <field name="view_id" ref="account.invoice_form"/>
+                 <field name="domain">[('type','in',('out_refund', 'in_refund'))]</field>
+                 <field name="context">{'lang': 'en_US', 'search_default_journal_id': 1, 'tz': False, 'uid': 1, 'invoice_type': 'refund', 'use_domain': [['type', 'in', ['out_refund', 'in_refund']]], 'search_default_dashboard': 1, 'journal_type': 'sale', 'default_type': 'out_refund', 'params': {'action': 212}, 'type': 'out_refund', 'default_journal_id': 1}</field>
+                 <field name="search_view_id" ref="account.view_account_invoice_filter"/>
+                 <field name="help" type="html">
+                   <p class="oe_view_nocontent_create">
+                     Click to create a customer Refunds.
+                   </p>
+                 </field>
+             </record>
+
+
+             <record id="action_invoice_customer_refund_view1" model="ir.actions.act_window.view">
+                 <field eval="1" name="sequence"/>
+                 <field name="view_mode">tree</field>
+                 <field name="view_id" ref="account.invoice_tree"/>
+                 <field name="act_window_id" ref="action_invoice_customer_refund"/>
+             </record>
+
+             <record id="action_invoice_customer_refund_view2" model="ir.actions.act_window.view">
+                 <field eval="2" name="sequence"/>
+                 <field name="view_mode">form</field>
+                 <field name="view_id" ref="account.invoice_form"/>
+                 <field name="act_window_id" ref="action_invoice_customer_refund"/>
+               </record>
+
+
+
+
+             <menuitem action="action_invoice_customer_refund" id="menu_customer_refund" parent="sales_team.menu_sales" name="Sale Returns" sequence="12"/>
+
+
+
+             <record id="action_invoice_vendor_refund" model="ir.actions.act_window">
+                 <field name="name">Purchase Returns</field>
+                 <field name="res_model">account.invoice</field>
+                 <field name="view_type">form</field>
+                 <field name="view_mode">tree,kanban,form,calendar,pivot,graph</field>
+                 <field name="view_id" ref="account.invoice_supplier_form"/>
+                 <field name="domain">[('type','in',('out_refund', 'in_refund'))]</field>
+                 <field name="context">{'lang': 'en_US', 'search_default_journal_id': 2, 'tz': False, 'uid': 1, 'invoice_type': 'refund', 'use_domain': [['type', u'in', ['out_refund', 'in_refund']]], 'search_default_dashboard': 1, 'journal_type': 'purchase', 'default_type': 'in_refund', 'params': {'action': 212}, 'type': 'in_refund', 'default_journal_id': 2}</field>
+                 <field name="search_view_id" ref="account.view_account_invoice_filter"/>
+                 <field name="help" type="html">
+                   <p class="oe_view_nocontent_create">
+                     Click to record a new vendor refund.
+                   </p>
+                 </field>
+             </record>
+
+             <record id="action_invoice_supplier_tree1_view1" model="ir.actions.act_window.view">
+                 <field eval="1" name="sequence"/>
+                 <field name="view_mode">tree</field>
+                 <field name="view_id" ref="account.invoice_supplier_tree"/>
+                 <field name="act_window_id" ref="action_invoice_vendor_refund"/>
+             </record>
+
+             <record id="action_invoice__supplier_tree1_view2" model="ir.actions.act_window.view">
+                 <field eval="2" name="sequence"/>
+                 <field name="view_mode">form</field>
+                 <field name="view_id" ref="account.invoice_supplier_form"/>
+                 <field name="act_window_id" ref="action_invoice_vendor_refund"/>
+             </record>
+
+              <menuitem action="action_invoice_vendor_refund" id="menu_vendor_refund" parent="purchase.menu_procurement_management" name="Purchase Returns"  sequence="6"/>
+
+
+              <record id="product_brand_template_search_view" model="ir.ui.view">
+                  <field name="name">product.template.brand.search</field>
+                  <field name="model">product.template</field>
+                  <field name="inherit_id" ref="product.product_template_search_view"/>
+                  <field name="arch" type="xml">
+                    <field name="name" position="after">
+                      <field name="brand" string="Brands" />
+                      <field name="barcode" string="Barcodes " filter_domain="[('barcode','=',self)]"/>
+                      <group expand="0" string="Group By">
+                          <filter string="Brands" name="brand" context="{'group_by':'brand'}"/>
+                        </group>
+                    </field>
+                  </field>
+                </record>
+
+
+<!--                 <record model="ir.ui.view" id="product_bacrode_list">
+                  <field name="name">product_bacrode.list</field>
+                  <field name="model">product.barcode</field>
+                  <field name="arch" type="xml">
+                    <tree>
+                      <field name="name"/>
+                    </tree>
+                  </field>
+                </record>
+
+                <record model="ir.actions.act_window" id="product_barcode_action_window">
+                  <field name="name">Product Barcode</field>
+                  <field name="res_model">product.barcode</field>
+                  <field name="view_mode">tree,form</field>
+                </record>
+
+                  <menuitem action="product_barcode_action_window" id="menu_purchase_product_barcode" parent="stock.menu_product_in_config_stock" name="Product Barcodes" /> -->
+
+
+                   <record id="last_counted_product_set_new_year" model="ir.cron">
+                  <field name="name">YTD Wholesales</field>
+                  <field name="interval_number">1</field>
+                  <field name="interval_type">days</field>
+                  <field name="numbercall">-1</field>
+                  <field name="doall" eval="False"/>
+                  <field name="model">sale.order.line</field>
+                  <field name="function">count_sale_order_delivered_product</field>
+                  <field name="args">()</field>
+                  </record>
+
+                  <record id="product_type_template_tree_view" model="ir.ui.view">
+                      <field name="name">product.template.type.tree</field>
+                      <field name="model">product.template</field>
+                      <field name="inherit_id" ref="product.product_template_tree_view"/>
+                      <field name="arch" type="xml">
+                        <field name="type" position="replace"/>
+                      </field>
+                    </record>
+
+
+                    <record id="product_type_template_tree_view" model="ir.ui.view">
+                        <field name="name">product.template.type.tree</field>
+                        <field name="model">product.template</field>
+                        <field name="inherit_id" ref="product.product_template_tree_view"/>
+                        <field name="arch" type="xml">
+                          <field name="type" position="replace"/>
+                        </field>
+                      </record>
+
+
+
+  </data>
+</odoo>

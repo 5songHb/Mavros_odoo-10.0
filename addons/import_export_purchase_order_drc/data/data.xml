@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data noupdate="1">
+
+    <record id="purchase_group_impex_orderline" model="res.groups">
+        <field name="name">Purchase Import/Export OrderLine</field>
+        <field name="category_id" ref="base.module_category_hidden"/>
+    </record>
+
+    <record id="default_qty_po" model="ir.config_parameter">
+        <field name="key">Defauly Qty To Import Product in Purchase Order</field>
+        <field name="value">12</field>
+    </record>
+
+</data>
+</odoo>

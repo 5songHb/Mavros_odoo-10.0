@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+        <record id="send_mail_wizard_form" model="ir.ui.view">
+            <field name="name">send_mail_wizard</field>
+            <field name="model">send.mail.wizard</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name='send_mail'/>
+                        <field name='email_cc_partner_ids' widget="many2many_tags" attrs="{'invisible':[('send_mail', '=', False)]}"/>
+                    </group>
+                <footer>
+                    <button name="send_mail_to_logistic" string="Proceed" type="object" class="oe_highlight"/>
+                    <button name="cancel" string="cancel" special="cancel"/>
+                </footer>
+                </form>
+            </field>
+        </record>
+
+        <act_window name="Export Logistic"
+            res_model="send.mail.wizard"
+            src_model="sale.order"
+            key2="client_action_multi" 
+            view_mode="form" 
+            target="new" 
+            view_type="form"
+            view_id="send_mail_wizard_form"
+            id="export_so_logistic"/>
+
+        <act_window name="Export Logistic"
+            res_model="send.mail.wizard"
+            src_model="purchase.order"
+            key2="client_action_multi" 
+            view_mode="form" 
+            target="new" 
+            view_type="form"
+            view_id="send_mail_wizard_form"
+            id="export_po_logistic"/>
+
+        <act_window name="Export Logistic"
+            res_model="send.mail.wizard"
+            src_model="stock.picking"
+            key2="client_action_multi" 
+            view_mode="form" 
+            target="new" 
+            view_type="form"
+            view_id="send_mail_wizard_form"
+            id="export_transfer_logistic"/>
+</odoo>

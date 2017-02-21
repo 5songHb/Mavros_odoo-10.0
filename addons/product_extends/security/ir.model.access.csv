@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_customer_level,customer_level.customer_level,model_customer_level,,1,0,0,0
+access_child_birtthday,child_birtthday.child_birtthday,model_child_birtthday,,1,0,0,0
+access_product_brand,product_brand.product_brand,model_product_brand,,1,0,0,0
+access_customer_group_discount,customer_group_discount.customer_group_discount,model_customer_group_discount,,1,0,0,0
+
