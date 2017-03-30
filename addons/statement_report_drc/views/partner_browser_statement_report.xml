@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <template id="external_layout_customer">
+        <!-- Multicompany -->
+        <t t-if="not o and doc">
+            <t t-set="o" t-value="doc" />
+        </t>
+        <t t-if="o and 'company_id' in o">
+            <t t-set="company" t-value="o.company_id"></t>
+        </t>
+        <t t-if="not o or not 'company_id' in o">
+            <t t-set="company" t-value="res_company"></t>
+        </t>
+        <t t-call="statement_report_drc.external_layout_header_customer" />
+        <br/>
+        <t t-raw="0" />
+        <!-- <t t-call="statement_report_drc.external_layout_footer" /> -->
+    </template>
+    <template id="external_layout_header_customer">
+        <div class="header">
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="col-xs-4" name="company_address">
+                        <span t-field="company.partner_id" t-field-options='{"widget": "contact", "fields": ["name"], "no_marker": true}' style="display:inline-block; font-size: 20px;" /><br/>
+                        <span t-field="company.partner_id" t-field-options='{"widget": "contact", "fields": ["address"], "no_marker": true}' style="display:inline-block;" />
+                    </div>
+                    <div class="col-xs-4">
+                        <h3 class="mb8"><center>Account Statement</center></h3>
+                    </div>
+                    <div class="col-xs-3 pull-right">
+                        <ul class="list-inline">
+                            <li>Page:</li>
+                            <li><span class="page" /></li>
+                            <li>/</li>
+                            <li><span class="topage" /></li>
+                        </ul>
+                    </div>
+                </div>
+                <br/>
+                <div class="col-xs-12">
+                    <div class="mb8 mt8">
+                        <div class="col-xs-8">
+                            <table>
+                                <tr>
+                                    <td>
+                                    <t t-if="o['partner']"><strong><span t-esc="o['partner'].name"/></strong></t>
+                                    </td>
+                                </tr>
+                                <!-- <strong>Address :</strong> -->
+                                <tr>
+                                    <td>
+                                    <t t-if="o['partner'] and o['partner'].street">
+                                        <span t-esc="'%s' % o['partner'].street + ', '"/>
+                                    </t>
+                                    <t t-if="o['partner'] and o['partner'].city">
+                                        <span t-esc="'%s' % o['partner'].city + ', '"/>
+                                    </t>
+                                    <t t-if="o['partner'] and o['partner'].state_id.name">
+                                        <span t-esc="'%s' % o['partner'].state_id + ', '"/>
+                                    </t>
+                                    <t t-if="o['partner'] and o['partner'].zip">
+                                        <span t-esc="'%s' % o['partner'].zip + ', '"/>
+                                    </t>
+                                    <t t-if="o['partner'] and o['partner'].country_id">
+                                        <span t-esc="o['partner'].country_id.name"/>
+                                    </t>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-xs-4">
+                            <table>
+                                <tr><t t-if="data['date_from']">
+                                    <td class="text-right"><strong>Date from</strong></td>
+                                    <td><strong> : </strong></td>
+                                    <td class="text-left"><span t-esc="time.strftime('%d-%m-%Y',time.strptime(data['date_from'],'%Y-%m-%d'))"/></td></t>
+                                </tr>
+                                <tr><t t-if="data['date_to']">
+                                    <td class="text-right"><strong>Date to</strong></td>
+                                    <td><strong> : </strong></td>
+                                    <td class="text-left"><span t-esc="time.strftime('%d-%m-%Y',time.strptime(data['date_to'],'%Y-%m-%d'))"/></td></t>
+                                </tr>
+                                <tr>
+                                    <td class="text-right"><strong>Currency</strong></td>
+                                    <td><strong> : </strong></td>
+                                    <td class="text-left"><span t-esc="o['currency']"/></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <br/>
+                </div>
+            </div>
+        </div>
+    </template>
+    <!-- <template id="external_layout_footer">
+        <div class="footer" style="border-top: 1px solid black;">
+            <h4 class="mb8 mt16" style="font-weight: bold;">Ageing</h4>
+            <table class="table table-condensed">
+                <thead>
+                    <tr>
+                        <th class="text-right">Due This Month</th>
+                        <th class="text-right">Due Next Month</th>
+                        <th class="text-right">Due in 2 Months</th>
+                        <th class="text-right">Due in 3 Months</th>
+                        <th class="text-right">Over 3 Months</th>
+                        <th class="text-right">Balance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="get_partner_lines" t-as="partners">
+                        <tr t-if="partners['partner_id'] == o['partner'].id">
+                            <td class="text-right">
+                                <span t-esc="partners.get('4')"/>
+                            </td>
+                            <td class="text-right">
+                                <span t-esc="partners.get('3')"/>
+                            </td>
+                            <td class="text-right">
+                                <span t-esc="partners.get('2')"/>
+                            </td>
+                            <td class="text-right">
+                                <span t-esc="partners.get('1')"/>
+                            </td>
+                            <td class="text-right">
+                                <span t-esc="partners.get('0')"/>
+                            </td>
+                            <td class="text-right">
+                                <span t-esc="'{:,.2f}'.format(closing)"/>
+                            </td>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+        </div>
+    </template>
+ -->
+    <record id="paperformat_euro_lowmargin_inherited_customer" model="report.paperformat">
+        <field name="name">European A4 low margin Duplicate</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="page_height">0</field>
+        <field name="page_width">0</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">50</field>
+        <field name="margin_bottom">40</field>
+        <field name="margin_left">5</field>
+        <field name="margin_right">5</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">40</field>
+        <field name="dpi">80</field>
+    </record>
+
+   <!--  <report id="report_account_statement_customer" string="Partner Statement" model="res.partner" report_type="qweb-pdf" name="statement_report_drc.account_statement_report_customer" file="statement_report_drc.account_statement_report_customer" paperformat="statement_report_drc.paperformat_euro_lowmargin_inherited_customer"/> -->
+
+    <template id="account_statement_report_customer">
+        <t t-call="report.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="statement_report_drc.external_layout_customer">
+                    <div class="page">
+                        <!-- <h3 class="mb8"><center>Account Statement</center></h3> -->
+                        <!-- <div class="row mt8">
+                            <div class="col-xs-4">
+                                <span style="font-weight: bold;">Target Moves:</span>
+                                <span t-if="data['posted'] == 'draft'">All Entries</span>
+                                <span t-if="data['posted'] == 'posted'">All Posted Entries</span>
+                            </div>
+                            <div class="col-xs-4">
+                                <t t-if="data['date_from']"><strong>Date from :</strong> <span t-esc="data['date_from']"/><br/></t>
+                                <t t-if="data['date_to']"><strong>Date to :</strong> <span t-esc="data['date_to']"/></t>
+                                <strong>Currency :</strong> <span t-esc="o['currency']"/>
+                            </div>
+                            <div class="col-xs-4">
+                                <strong>Currency :</strong> <span t-esc="o['currency']"/>
+                            </div>
+                        </div> -->
+                        <br/>
+                        <table class="table table-condensed">
+                            <thead>
+                                <tr>
+                                    <th class="text-left">Date</th>
+                                    <th class="text-left">Doc Num</th>
+                                    <th class="text-left">Detail</th>
+                                    <th class="text-right">Debit</th>
+                                    <th class="text-right">Credit</th>
+                                    <th class="text-right">Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="closing" t-value="0"/>
+                                <tr style="font-weight: bold;">
+                                    <td colspan="5">
+                                        Opening Balance : 
+                                    </td>
+                                    <td class="text-right">
+                                        <span t-esc="'{:,.2f}'.format(o['opening'])" />
+                                    </td>
+                                </tr>
+                                <t t-foreach="o.get('lines')" t-as="account">
+                                    <tr t-foreach="account.get('move_lines')" t-as="line">
+                                        <td><t t-esc="time.strftime('%d-%m-%Y',time.strptime(line['ldate'],'%Y-%m-%d'))"/></td>
+                                        <td><span t-if="line['move_name']" t-esc="line['move_name']"/></td>
+                                        <td><span t-esc="line['lname']"/></td>
+                                        <td class="text-right">
+                                            <span t-esc="'{:,.2f}'.format(account['debit'])" />
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="'{:,.2f}'.format(account['credit'])" />
+                                        </td>
+                                        <td class="text-right">
+                                            <t t-set="closing" t-value="account['balance']"/>
+                                            <span t-esc="'{:,.2f}'.format(account['balance'])" />
+                                        </td>
+                                    </tr>
+                                </t>
+                                <tr style="font-weight: bold;">
+                                    <td colspan="5">
+                                        Closing Balance : 
+                                    </td>
+                                    <td class="text-right">
+                                        <span t-esc="'{:,.2f}'.format(closing)" />
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div>
+                        <h4 class="mb8 mt16" style="font-weight: bold;">Ageing</h4>
+                        <table class="table table-condensed">
+                            <thead>
+                                <tr>
+                                    <th class="text-right">Due This Month</th>
+                                    <th class="text-right">Due Next Month</th>
+                                    <th class="text-right">Due in 2 Months</th>
+                                    <th class="text-right">Due in 3 Months</th>
+                                    <th class="text-right">Over 3 Months</th>
+                                    <th class="text-right">Balance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="get_partner_lines" t-as="partners">
+                                    <tr t-if="partners['partner_id'] == o['partner'].id">
+                                        <td class="text-right">
+                                            <span t-esc="'{:,.2f}'.format(partners.get('4'))"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="'{:,.2f}'.format(partners.get('3'))"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="'{:,.2f}'.format(partners.get('2'))"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="'{:,.2f}'.format(partners.get('1'))"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="'{:,.2f}'.format(partners.get('0'))"/>
+                                        </td>
+                                        <td class="text-right">
+                                            <span t-esc="'{:,.2f}'.format(closing)"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

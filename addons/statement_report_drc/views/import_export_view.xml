@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="account_statement_wizard" model="ir.ui.view">
+            <field name="name">account.statement.form</field>
+            <field name="model">account.statement.wizard</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name='radio_hide_bool' invisible='1'/>
+                        <field name='new_radio' widget="radio" attrs="{'invisible' : [('radio_hide_bool','=',False)]}"/>
+                        <field name="partner_id" widget="many2many_tags"/>
+                        <field name="date_from" />
+                        <field name="date_to" />
+                        <field name="posted" widget="radio"/>
+                        <field name="currency_id" widget="radio"/>
+                    </group>
+                    <footer>
+                        <button name="print_report" string="Print" type="object" class="oe_highlight" />
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_account_report_as" model="ir.actions.act_window">
+            <field name="name">Partner Statement</field>
+            <field name="res_model">account.statement.wizard</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="account_statement_wizard"/>
+            <field name="target">new</field>
+        </record>
+
+        <menuitem id="menu_account_report_as" name="Partner Statement" action="action_account_report_as" parent="account.menu_finance_legal_statement"/>
+
+        <act_window
+        id="act_open_wizard_customers"
+        name="Partner Statement"
+        res_model="account.statement.wizard"
+        src_model="res.partner"
+        view_mode="form"
+        key2="client_print_multi"
+        target="new"/>
+
+    </data>
+</odoo>

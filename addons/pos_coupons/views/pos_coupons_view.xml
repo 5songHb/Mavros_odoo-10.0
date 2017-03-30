@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+		<record id="res_users_form_view3" model="ir.ui.view">
+        <field name="name">res.users.form.view</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="point_of_sale.res_users_form_view" />
+        <field name="arch" type="xml">
+            <field name="pos_security_pin" position="after">
+                <field name="allow_coupon_create" />  
+            </field>
+        </field>
+    </record>
+</data>
+</openerp>

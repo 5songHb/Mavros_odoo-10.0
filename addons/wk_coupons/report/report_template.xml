@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+<data>
+
+
+
+<template id="report_coupon">
+    <t t-call="report.html_container">
+        <t t-foreach="docs" t-as="o">
+                <div class="page">
+                <div class="row">
+                    <div class="col-xs-12 text-center">
+                    <center><span t-field="o.user_id.company_id.logo" t-options="{'widget': 'image', 'class': 'img-rounded'}"/></center>
+                    
+                    <center>
+                        <!-- <div>Tel:<span t-field="o.user_id.company_id.name"/></div> -->
+                    <h2><div>Email:<span t-field="o.user_id.email"/></div></h2>
+                    <div>Website:<span t-field="o.user_id.website"/></div>
+                    <div><b>Coupon Description:</b></div>
+                    <div><span t-field="o.name"/></div>
+                    <h2><div><b>Validity:</b></div></h2>
+                    <h2><div>From:<span t-field="o.issue_date"/></div></h2>
+                    <h2><div>To:<span t-field="o.expiry_date"/></div></h2>
+                    <div><h2><b>Coupon Value:</b><span t-field="o.voucher_value"/></h2></div>
+                    <h1><img t-if="o.voucher_code" t-att-src="'/report/barcode/?type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', o.voucher_code, 600, 100)" style="width:300px;height:45px;"/></h1>
+                    <h1><strong >Secret Voucher Code:<span t-field="o.voucher_code"/></strong></h1>
+                    <h2><div style="border-style: solid;border-width: 2px;height:50px">Note: Keep Your Secret Voucher Code Safe.<hr/></div></h2></center>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </t>
+</template>
+
+</data>
+</openerp>

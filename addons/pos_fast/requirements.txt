@@ -1,0 +1,7 @@
+The first need to install 2 package python
+Go to linux system and open termial:
+
+    sudo pip install xlsxwriter
+    sudo pip install xlrd
+
+Restart Odoo and Install Module
