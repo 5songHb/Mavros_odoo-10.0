@@ -6,6 +6,7 @@
         <template id="assets_backend" name="pos_prod_load_background assets" inherit_id="point_of_sale.assets">
             <xpath expr="." position="inside">
                 <script type="text/javascript" src="/pos_prod_load_background/static/src/js/pos.js"></script>
+                <link rel="stylesheet" href="/pos_prod_load_background/static/src/css/pos.css" id="pos-stylesheet" />
             </xpath>
         </template>
 

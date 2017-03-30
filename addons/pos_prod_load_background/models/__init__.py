@@ -19,29 +19,7 @@
 #
 ##############################################################################
 
-{
-    'name': 'POS Load Products & Customers Background',
-    'version': '1.0',
-    'category': 'Point of Sale',
-    'summary': 'This module load fast products and customers in background to improve speed in pos front-end.',
-    'description': """
-This module load fast products and customers in background to improve speed in point of sale front-end.
-""",
-    'author': 'Acespritech Solutions Pvt. Ltd.',
-    'website': 'http://www.acespritech.com',
-    'price': 00,
-    'currency': 'EUR',
-    'version': '1.0.1',
-    'depends': ['base', 'point_of_sale'],
-    'images': ['static/description/main_screenshot.png'],
-    "data": [
-        'security/ir.model.access.csv',
-        'views/pos_prod_load_background.xml',
-        'views/product_view.xml',
-    ],
-    'qweb': ['static/src/xml/pos.xml'],
-    'installable': True,
-    'auto_install': False,
-}
+import product
+import product_barcode
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

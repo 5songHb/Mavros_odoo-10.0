@@ -1,6 +1,6 @@
 odoo.define('pos_prod_load_background.pos', function (require) {
 "use strict";
-	
+
 	var models = require('point_of_sale.models');
 	var screens = require('point_of_sale.screens');
 	var chrome = require('point_of_sale.chrome');
@@ -12,6 +12,9 @@ odoo.define('pos_prod_load_background.pos', function (require) {
 	var _t = core._t;
 	var QWeb = core.qweb;
 
+    models.load_fields("product.product", ['barcode_product_ids','write_date']);
+    models.load_fields("res.partner", ['mobile']);
+
 	models.PosModel.prototype.models.push({
     	model:  'res.users',
         fields: [ 'name','barcode'],
@@ -20,6 +23,14 @@ odoo.define('pos_prod_load_background.pos', function (require) {
             self.db.add_users(users);
         },
 	});
+	// Multi Barcode Search
+	models.PosModel.prototype.models.push({
+	    model:  'product.barcode',
+        fields: [],
+        loaded: function(self, barocdes){
+        	self.db.add_product_barcode(barocdes);
+        },
+    });
 
 	var _super_posmodel = models.PosModel;
 	models.PosModel = models.PosModel.extend({
@@ -29,7 +40,7 @@ odoo.define('pos_prod_load_background.pos', function (require) {
 	            this.product_fields = [];
 	            this.product_domain = [];
 	            this.product_context = {};
-	        },
+	    },
 		fetch: function(model, fields, domain, ctx){
             this._load_progress = (this._load_progress || 0) + 0.05; 
             this.chrome.loading_message(('Loading')+' '+model,this._load_progress);
@@ -60,6 +71,7 @@ odoo.define('pos_prod_load_background.pos', function (require) {
                     var ids     = typeof model.ids === 'function'     ? model.ids(self,tmp) : model.ids;
                     var order   = typeof model.order === 'function'   ? model.order(self,tmp):    model.order;
                     if ( model.model && $.inArray(model.model,['product.product', 'res.partner']) == -1) {
+//					if ( model.model ){
                         self.chrome.loading_message(_t('Loading')+' '+(model.label || model.model || ''), progress);
                     } else if(model.model && model.model == 'product.product') {
                         self.product_domain = self.product_domain.concat(model.domain);
@@ -70,6 +82,7 @@ odoo.define('pos_prod_load_background.pos', function (require) {
                    
                     var records;
                     if( model.model && $.inArray(model.model,['product.product', 'res.partner']) == -1){
+//					if( model.model ){
                         if (model.ids) {
                             records = new Model(model.model).call('read',[ids,fields],context);
                         } else {
@@ -133,6 +146,22 @@ odoo.define('pos_prod_load_background.pos', function (require) {
     	   }
     	   return def;
        },
+       scan_product: function(parsed_code){ //Multi Barcode Search
+            var self = this;
+            var selectedOrder = this.get_order();
+            var res = _super_posmodel.prototype.scan_product.call(this, parsed_code);
+            if(!res){
+                var product_id = self.db.get_product_id_by_barcode_name(parsed_code.code);
+                if (product_id){
+                    var product = self.db.get_product_by_tmpl_id(product_id[0]);
+                    if (product){
+                        selectedOrder.add_product(product);
+                        return true;
+                    }
+                }
+            }
+            return res;
+	   },
 	});
 
 	screens.ProductCategoriesWidget.include({
@@ -141,13 +170,16 @@ odoo.define('pos_prod_load_background.pos', function (require) {
             this._super(parent,options);
             var model = new Model("product.product");
             new Model("product.product").call("calculate_product").then(function(result) {
+            	$('div.product_progress_bar').css('display','');
 			    if(result && result[0]){
 			    	var total_products = parseInt(result[0][0]);
+			    	var remaining_time;
 			    	if(total_products){
 			    		var product_limit = 1000;
 			    		var count_loop = total_products;
+			    		var count_loaded_products = 0;
 			    		function ajax_product_load(){
-			    			if(count_loop >= 0){
+			    			if(count_loop > 0){
 			    				$.ajax({
 					                type: "GET",
 						            url: '/web/dataset/load_products',
@@ -159,21 +191,31 @@ odoo.define('pos_prod_load_background.pos', function (require) {
 						                    product_limit:product_limit,
 						                },
 						            success: function(res) {
-						            	count_loop -= JSON.parse(res).length;
-						            	product_limit += 1000;
-						            	console.log("product_limit >> ",product_limit);
-						            	var list=[];
-						                self.pos.product_list.push(JSON.parse(res));
-						                JSON.parse(res).map(function(data){
-						                	list.push(data.id);
-						                });
-						                console.log(list);
-						                self.pos.db.add_products(JSON.parse(res));
-						                self.renderElement();
-						                ajax_product_load()
+						            		var all_products = JSON.parse(res)
+						            		count_loop -= JSON.parse(res).length;
+						            		remaining_time = ((total_products - count_loop) / total_products) * 100;
+//						            		$('#bar').css({'width': +remaining_time+'% !important'});
+							            	product_limit += 1000;
+							            	all_products.map(function(product){
+                                           		self.pos.product_list.push(product);
+                                       		});
+							                self.pos.db.add_products(JSON.parse(res));
+							                self.renderElement();
+							                $('div.product_progress_bar').css('display','');
+						            		$('.product_progress_bar').find('#bar').css('width', parseInt(remaining_time)+'%', 'important');
+						            		$('.product_progress_bar').find('#progress_status').html(parseInt(remaining_time) + "% completed");
+						            		count_loaded_products += all_products.length;
+                                       		all_products = [];
+           									if(count_loaded_products >= total_products){
+												self.pos.db.set_is_product_load(true);
+												$('.product_progress_bar').delay(3000).fadeOut('slow');
+           									}
+							                ajax_product_load()
 						            },
 						            error: function() {
 						                console.log('Product loading failed.');
+						                $('.product_progress_bar').find('#bar').css('width', '100%', 'important');
+					            		$('.product_progress_bar').find('#progress_status').html("Products loading failed...");
 						            },
 					            });
 			    			}
@@ -191,17 +233,20 @@ odoo.define('pos_prod_load_background.pos', function (require) {
 	        if(query){
 	            products = this.pos.db.search_product_in_category(category.id,query);
 	            if(buy_result && products.length === 1){
-	                    this.pos.get_order().add_product(products[0]);
-	                    this.clear_search();
-	            }else if(products.length === 0){
-	            	if(self.pos.product_list.length > 0){
-	            		var domain = [['name', 'ilike', query],['sale_ok','=',true],['available_in_pos','=',true]];
+                    this.pos.get_order().add_product(products[0]);
+                    this.clear_search();
+	            }else if(products.length === 0 && buy_result){
+//	            	if(self.pos.product_list.length > 0){
+                        //Multi Barcode Search
+	            		var product_barcode_ids = []
+	            		product_barcode_ids.push(self.pos.db.get_barcode_id_by_name(query));
+	            		var domain = [['sale_ok','=',true],['available_in_pos','=',true], '|', '|',['name', 'ilike', query], ['barcode', 'ilike', query], ['barcode_product_ids', 'in', product_barcode_ids]];
 	                	var model = new Model("product.product");
-	            		var fields = ['display_name', 'list_price','price','pos_categ_id', 'taxes_id', 'barcode', 'default_code', 
+	            		var fields = ['display_name', 'list_price','price','pos_categ_id', 'taxes_id', 'barcode', 'default_code',
 	            		                 'to_weight', 'uom_id', 'description_sale', 'description',
-	            		                 'product_tmpl_id','write_date'];
+	            		                 'product_tmpl_id', 'barcode_product_ids','tracking'];
 	            		var context = {
-	                            'pricelist': self.pos.pricelist.id, 
+	                            'pricelist': self.pos.pricelist.id,
 	                            'display_default_code': false,
 	                        }
 	            		var offset;
@@ -211,8 +256,10 @@ odoo.define('pos_prod_load_background.pos', function (require) {
 	                        		if(self.pos.product_list.length != undefined){
 	                        			self.pos.product_list = result;
 	                	                self.pos.db.add_products(result);
-	                	                self.chrome.screens.products.product_list_widget.set_product_list(result);
 	                        		}
+	                        		self.chrome.screens.products.product_list_widget.set_product_list(result);
+	                        		self.pos.get_order().add_product(result[0]);
+	                        		self.clear_search();
 	                        	}else {
 	                        		self.chrome.screens.products.product_list_widget.set_product_list(result);
 	                        		return console.info("Products not found.");
@@ -222,9 +269,9 @@ odoo.define('pos_prod_load_background.pos', function (require) {
 	    				        	event.preventDefault();
 	    			           }
 	    			       });
-	            	}else{
-	            		alert("Please wait products are loading.");
-	            	}
+//	            	}else{
+//	            		alert("Please wait products are loading.");
+//	            	}
 	            }else{
 	                this.product_list_widget.set_product_list(products);
 	            }
@@ -352,8 +399,7 @@ odoo.define('pos_prod_load_background.pos', function (require) {
 	                this.gui.back();
 	            }else if(associate_result && (customer_load.length == 0 || !self.pos.partners_load)){
 //	            	call when customers are loading and cashier want to search customer
-
-	            	var domain = [['name', 'ilike', query],['customer', '=', true]];
+                    var domain = [['customer', '=', true],'|', '|',['name', 'ilike', query], ['phone', 'ilike', query], ['mobile', 'ilike', query]];
                 	var model = new Model("res.partner");
             		var fields = ['name','street','city','state_id','country_id','vat','phone','zip','mobile','email','barcode','write_date'];
             		model.call("search_read", [domain=domain, fields=fields]).pipe(
@@ -480,13 +526,16 @@ odoo.define('pos_prod_load_background.pos', function (require) {
             self = this;
             if(code.length > 3){
                 if (this.pos.product_list.length == 0) {
-                    var fields = ['display_name', 'list_price','price','pos_categ_id', 'taxes_id', 'ean13', 'default_code', 
+                    var product_barcode_ids = []
+	            	product_barcode_ids.push(self.pos.db.get_barcode_id_by_name(code));
+                    var fields = ['display_name', 'list_price','price','pos_categ_id', 'taxes_id', 'ean13', 'default_code',
                                   'to_weight', 'uom_id', 'uos_id', 'uos_coeff', 'mes_type', 'description_sale', 'description',
-                                  'product_tmpl_id'];
-                    var domain = ['|','|', ['barcode', '=', code],['barcode', '=', '0'+code],['default_code', '=', code]];
-                    var context = { 
-                        pricelist: self.pos.pricelist.id, 
-                        display_default_code: false, 
+                                  'product_tmpl_id', 'tracking'];
+                    //Multi Barcode Search
+                    var domain = ['|','|', '|',['barcode', '=', code],['barcode', '=', '0'+code], ['barcode_product_ids', 'in', product_barcode_ids], ['default_code', '=', code]];
+                    var context = {
+                        pricelist: self.pos.pricelist.id,
+                        display_default_code: false,
                     }
                     var offset;
                     new Model("product.product").get_func("search_read")(domain=domain, fields=fields, offset=0, false, false, context=context)
@@ -548,6 +597,13 @@ odoo.define('pos_prod_load_background.pos', function (require) {
 	DB.include({
 		init: function(options){
 			this.user_by_barcode = {};
+			this.barcode_by_id = {};
+			this.product_write_date = null;
+			this.barcode_write_date = null;
+			this.barocde_id_by_name = [];
+			this.product_id_by_barcode_name = [];
+			this.product_by_templ_id = [];
+			this.is_product_load = false;
 			this._super(options,this);
 		},
 		add_users: function(users){
@@ -561,6 +617,223 @@ odoo.define('pos_prod_load_background.pos', function (require) {
         get_user_by_barcode: function(barcode){
             return this.user_by_barcode[barcode];
         },
+        add_products: function(products){
+        	
+            var stored_categories = this.product_by_category_id;
+            var new_write_date = '';
+            var product;
+            if(!products instanceof Array){
+                products = [products];
+            }
+            for(var i = 0, len = products.length; i < len; i++){
+                var product = products[i];
+                product.price = product.list_price;
+//                if(this.get_product_by_id(product.id)){
+//                    continue;
+//                }
+                var search_string = this._product_search_string(product);
+                var categ_id = product.pos_categ_id ? product.pos_categ_id[0] : this.root_category_id;
+                product.product_tmpl_id = product.product_tmpl_id[0];
+                if(!stored_categories[categ_id]){
+                    stored_categories[categ_id] = [];
+                }
+                stored_categories[categ_id].push(product.id);
+
+                if(this.category_search_string[categ_id] === undefined){
+                    this.category_search_string[categ_id] = '';
+                }
+                this.category_search_string[categ_id] += search_string;
+
+                var ancestors = this.get_category_ancestors_ids(categ_id) || [];
+
+                for(var j = 0, jlen = ancestors.length; j < jlen; j++){
+                    var ancestor = ancestors[j];
+                    if(! stored_categories[ancestor]){
+                        stored_categories[ancestor] = [];
+                    }
+                    stored_categories[ancestor].push(product.id);
+
+                    if( this.category_search_string[ancestor] === undefined){
+                        this.category_search_string[ancestor] = '';
+                    }
+                    this.category_search_string[ancestor] += search_string;
+                }
+
+                this.product_by_id[product.id] = product;
+                this.product_by_templ_id[product.product_tmpl_id] = product;
+                if(product.barcode){
+                    this.product_by_barcode[product.barcode] = product;
+                }
+                if (    this.product_write_date &&
+                            this.product_by_id[product.id] &&
+                            new Date(this.product_write_date).getTime() + 1000 >=
+                            new Date(product.write_date).getTime() ) {
+                        // FIXME: The write_date is stored with milisec precision in the database
+                        // but the dates we get back are only precise to the second. This means when
+                        // you read partners modified strictly after time X, you get back partners that were
+                        // modified X - 1 sec ago.
+                        continue;
+                } else if ( new_write_date < product.write_date ) {
+                    new_write_date  = product.write_date;
+                }
+            }
+            this.product_write_date = new_write_date || this.product_write_date;
+        },
+//        add_products: function(products){
+//        	var self = this;
+//        	this._super(products);
+//        	var product;
+//        	var new_write_date = '';
+//        	if(products && products.length > 0){
+//        		for(var i = 0, len = products.length; i < len; i++){
+//        			product = products[i];
+//
+//        		}
+//        		this.product_write_date = new_write_date || this.product_write_date;
+//        	}
+//        },
+        get_product_by_tmpl_id: function(tmpl_id){
+            return this.product_by_templ_id[tmpl_id];
+        },
+        get_product_write_date: function(){
+            return this.product_write_date || "1970-01-01 00:00:00";
+        },
+        get_barcode_write_date: function(){
+            return this.barcode_write_date || "1970-01-01 00:00:00";
+        },
+        //Multi Barcode Search
+        add_product_barcode: function(barcodes){
+            var self = this;
+            var new_write_date = '';
+
+            for(var i=0; i<barcodes.length; i++){
+                var barcode = barcodes[i];
+                self.barocde_id_by_name[barcode.barcode_product] = barcode.id;
+                self.product_id_by_barcode_name[barcode.barcode_product] = barcode.product_tmpl_id;
+                self.barcode_by_id[barcode.id] = barcode;
+
+                if (    this.barcode_write_date &&
+                        this.barcode_by_id[barcode.id] &&
+                        new Date(this.barcode_write_date).getTime() + 1000 >=
+                        new Date(barcode.write_date).getTime() ) {
+                    // FIXME: The write_date is stored with milisec precision in the database
+                    // but the dates we get back are only precise to the second. This means when
+                    // you read partners modified strictly after time X, you get back partners that were
+                    // modified X - 1 sec ago.
+                    continue;
+	            } else if ( new_write_date < barcode.write_date ) {
+	                new_write_date  = barcode.write_date;
+	            }
+            }
+            this.barcode_write_date = new_write_date || this.barcode_write_date;
+        },
+        get_barcode_id_by_name: function(name){
+            return this.barocde_id_by_name[name];
+        },
+        get_barcode_by_id: function(id){
+            return this.barcode_by_id[id];
+        },
+        get_product_id_by_barcode_name: function(name){
+            return this.product_id_by_barcode_name[name];
+        },
+        remove_barcode_by_id: function(id){
+        	var barcode = this.get_barcode_by_id(id);
+        	if(barcode){
+        		this.product_id_by_barcode_name[barcode.barcode_product] = 0;
+        		this.barocde_id_by_name[barcode.barcode_product] = 0
+        		this.barcode_by_id[barcode.id] = [];
+        	}
+        },
+        search_product_in_category: function(category_id, query){
+            try {
+                query = query.replace(/[\[\]\(\)\+\*\?\.\-\!\&\^\$\|\~\_\{\}\:\,\\\/]/g,'.');
+                query = query.replace(/ /g,'.+');
+                var re = RegExp("([0-9]+):.*?"+query,"gi");
+            }catch(e){
+                return [];
+            }
+            var results = [];
+            for(var i = 0; i < this.limit; i++){
+                var r = re.exec(this.category_search_string[category_id]);
+                if(r){
+                    var id = Number(r[1]);
+                    results.push(this.get_product_by_id(id));
+                }else{
+                    var r1 = this.get_product_id_by_barcode_name(query);
+                    if (r1){
+                        var product = this.get_product_by_tmpl_id(r1[0]);
+                        if (product){
+                            results.push(product);
+                        } else {
+                            break;
+                        }
+                    }else{
+                        break;
+                    }
+                    break;
+                }
+            }
+            return results;
+        },
+		set_is_product_load: function(is_product_load) {
+           this.is_product_load = is_product_load;
+       },
+		get_is_product_load: function(){
+       	return this.is_product_load;
+       },
 	});
+
+	var SyncProduct = screens.ActionButtonWidget.extend({
+        template: 'SyncProduct',
+        button_click: function(){
+            var self = this;
+            if(self.pos.product_list.length > 0 && self.pos.db.get_is_product_load()){
+            	var context = { 
+                        pricelist: self.pos.pricelist.id, 
+                        display_default_code: false, 
+                    }
+            	var fields = ['display_name', 'list_price','price','pos_categ_id', 'taxes_id', 'barcode', 'default_code',
+                         'to_weight', 'uom_id', 'description_sale', 'description',
+                         'product_tmpl_id','tracking','write_date', 'barcode_product_ids'];
+ 	           var offset;
+ 	           var domain = [['write_date','>',self.pos.db.get_product_write_date()],['available_in_pos','=',true]];
+ 	           new Model('product.product').call("search_read", [domain=domain, fields=fields, offset=0, false, false, context=context]).pipe(
+                   function(products) {
+                	   if(products && products[0]){
+                		   _.each(products, function(product){
+                			   var old_product = self.pos.db.get_product_by_id(product.id)
+                			   if (old_product){
+                				   var removed_barcodes_id = [];
+                				   jQuery.grep(old_product.barcode_product_ids, function(el) {
+                					    if (jQuery.inArray(el, product.barcode_product_ids) == -1) removed_barcodes_id.push(el);
+                					});
+                				   _.each(removed_barcodes_id, function(id){
+                					   self.pos.db.remove_barcode_by_id(id)
+                				   })
+                				   
+                			   }
+                		   })
+	                		self.pos.db.add_products(products);
+	                		products.map(function(product){
+        						$("[data-product-id='"+product.id+"']").find('.price-tag').html(self.format_currency(product.list_price));
+        						$("[data-product-id='"+product.id+"']").find('.product-name').html(product.display_name);
+        					});
+	                	}
+                   });
+ 	          new Model('product.barcode').call("search_read", [domain=[['write_date','>',self.pos.db.get_barcode_write_date()]], fields=[], 0, false, false, context={}]).pipe(
+                   function(barcodes) {
+                	   if(barcodes && barcodes[0]){
+	                		self.pos.db.add_product_barcode(barcodes);
+	                	}
+                   });
+            }else{
+            	alert("Please wait, Products are still loading...");
+            }
+        },
+    });
+	screens.define_action_button({
+        'name': 'SyncProduct',
+        'widget': SyncProduct,
+    });
 
 });

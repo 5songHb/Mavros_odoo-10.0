@@ -1,16 +1,7 @@
 <odoo>
   <data>
 
-<!--      <record id="show_internal_category_product_form_view" model="ir.ui.view">
-     <field name="name">product.internal.category.show.product.form</field>
-     <field name="model">product.template</field>
-     <field name="inherit_id" ref="product.product_template_only_form_view"/>
-     <field name="arch" type="xml">
-      <xpath expr="//field[@name='default_code']" position="after">
-         <field name="categ_id" string="Internal Category"/>
-        </xpath>
-      </field>
-    </record> -->
+
 
         <record id="product_barcode_form_view" model="ir.ui.view">
             <field name="name">product.product.barcode.form</field>
@@ -42,6 +33,7 @@
              <field name="counted" colspan="4"/>
              <field name="ytd_sales_retail"/>
              <field name="ytd_wholesales"/>
+             <field name="first_barcode"/>
              </group>
 
              <group>
@@ -275,7 +267,6 @@
                   <field name="arch" type="xml">
                     <field name="name" position="after">
                       <field name="brand" string="Brands" />
-                      <field name="barcode" string="Barcodes " filter_domain="[('barcode','=',self)]"/>
                       <group expand="0" string="Group By">
                           <filter string="Brands" name="brand" context="{'group_by':'brand'}"/>
                         </group>
@@ -334,6 +325,98 @@
                       </record>
 
 
+          <record id="view_res_partner_tree_extends" model="ir.ui.view">
+          <field name="name">res.partner.tree.extends</field>
+          <field name="model">res.partner</field>
+          <field name="inherit_id" ref="base.view_partner_tree"/>
+          <field name="arch" type="xml">
+            <field name="display_name" position="after">
+              <field name="credit"/>
+              <field name="debit"/>
+            </field>
+          </field>
+        </record>
 
+         <record id="show_internal_category_product_form_view" model="ir.ui.view">
+         <field name="name">product.internal.category.show.product.form</field>
+         <field name="model">product.template</field>
+         <field name="inherit_id" ref="product.product_template_only_form_view"/>
+         <field name="arch" type="xml">
+          <xpath expr="//field[@name='default_code']" position="after">
+             <field name="categ_id" string="Internal Category"/>
+             <field name="public_categ_ids" widget="many2many_tags" string="Website Categories"/>
+            </xpath>
+          </field>
+        </record>
+
+        <record id="view_product_extends_tree" model="ir.ui.view">
+        <field name="name">product.template.extends.tree</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_tree_view"/>
+        <field name="arch" type="xml">
+          <field name="list_price" position="before">
+            <field name="manufacturer"/>
+            <field name="brand"/>
+            <field name="ytd_wholesales"/>
+            <field name="ytd_sales_retail"/>
+          </field>
+        </field>
+      </record>
+
+      <record id="website_sale_product_template_form_view" model="ir.ui.view">
+        <field name="name">product.template.website.categories</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="website_sale.product_template_form_view"/>
+        <field name="arch" type="xml">
+          <field name="public_categ_ids" position="replace">
+          </field>
+        </field>
+      </record>
+
+        <record id="product_product_tree_view_extend" model="ir.ui.view">
+        <field name="name">product.product.tree.extend</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_product_tree_view"/>
+        <field name="arch" type="xml">
+          <field name="lst_price" position="before">
+            <field name="manufacturer"/>
+            <field name="brand"/>
+          </field>
+        </field>
+      </record>
+
+       <record id="first_barcode_generator" model="ir.cron">
+      <field name="name">First Barcode generator</field>
+      <field name="interval_number">1</field>
+      <field name="interval_type">days</field>
+      <field name="numbercall">-1</field>
+      <field name="doall" eval="False"/>
+      <field name="model">product.template</field>
+      <field name="function">first_barcode_generator</field>
+      <field name="args">()</field>
+      </record>
+
+      <record id="product_template_tree_view_website_categories" model="ir.ui.view">
+      <field name="name">product.template.tree.website_categories</field>
+      <field name="model">product.template</field>
+      <field name="inherit_id" ref="product.product_template_tree_view"/>
+      <field name="arch" type="xml">
+        <field name="barcode" position="before">
+          <field name="public_categ_ids" widget="many2many_tags" string="Website Categories"/>
+        </field>
+      </field>
+    </record>
+
+      <record id="product_product_tree_view_website_categories" model="ir.ui.view">
+      <field name="name">product.product.tree.website_categories</field>
+      <field name="model">product.product</field>
+      <field name="inherit_id" ref="product.product_product_tree_view"/>
+      <field name="arch" type="xml">
+        <field name="barcode" position="before">
+          <field name="public_categ_ids" widget="many2many_tags" string="Website Categories"/>
+        </field>
+      </field>
+    </record>
+      
   </data>
 </odoo>

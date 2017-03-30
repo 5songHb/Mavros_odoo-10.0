@@ -144,7 +144,10 @@ class SaleOrderWizard(models.Model):
                                 'product_id': product.id,
                                 'product_uom': product.product_tmpl_id.uom_id.id or False})
                                 if not vals.get('name'):
-                                    vals['name'] = product.product_tmpl_id.description_sale or product.name
+                                    description = ''
+                                    if product.product_tmpl_id.description_sale:
+                                        description = product.product_tmpl_id.description_sale
+                                    vals['name'] = "[" + str(code) + "]" + product.name + ' ' + description
                                 new_line = self.env['sale.order.line'].create(vals)
                                 if not default_price:
                                     expected_subtotal = vals['price_unit'] * int(vals['product_uom_qty'])

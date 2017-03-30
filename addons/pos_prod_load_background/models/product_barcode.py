@@ -19,29 +19,21 @@
 #
 ##############################################################################
 
-{
-    'name': 'POS Load Products & Customers Background',
-    'version': '1.0',
-    'category': 'Point of Sale',
-    'summary': 'This module load fast products and customers in background to improve speed in pos front-end.',
-    'description': """
-This module load fast products and customers in background to improve speed in point of sale front-end.
-""",
-    'author': 'Acespritech Solutions Pvt. Ltd.',
-    'website': 'http://www.acespritech.com',
-    'price': 00,
-    'currency': 'EUR',
-    'version': '1.0.1',
-    'depends': ['base', 'point_of_sale'],
-    'images': ['static/description/main_screenshot.png'],
-    "data": [
-        'security/ir.model.access.csv',
-        'views/pos_prod_load_background.xml',
-        'views/product_view.xml',
-    ],
-    'qweb': ['static/src/xml/pos.xml'],
-    'installable': True,
-    'auto_install': False,
-}
+from openerp import models, fields, api, _
+from odoo.exceptions import ValidationError
+
+class product_barcode(models.Model):
+    _name = 'product.barcode'
+
+    barcode_product = fields.Char('Barcode Product', required=True)
+    product_tmpl_id = fields.Many2one('product.template', 'Product')
+    # _sql_constraints = [('uniq_barcode_product', 'unique(barcode_product)', _("Product barcode should be unique."))]
+
+    @api.multi
+    @api.constrains('barcode_product')
+    def uniq_barcode_product(self):
+        is_exist = self.search([('barcode_product', '=', self.barcode_product), ('id', '!=', self.id)])
+        if is_exist:
+            raise ValidationError(_('Barcode is already exist in %s') % is_exist.product_tmpl_id.name)
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

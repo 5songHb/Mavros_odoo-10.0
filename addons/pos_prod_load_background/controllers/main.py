@@ -48,8 +48,7 @@ class DataSet(http.Controller):
         context = dict(context)
         context.update(ctx1)
         try:
-            records = request.env[Model].with_context(context).search_read(domain, limit=1000)
-            _logger.info('records .... %s',records)
+            records = request.env[Model].with_context(context).search_read(domain, fields, limit=1000)
         except Exception, e:
             _logger.error('Error .... %s',e)
         return simplejson.dumps(records)

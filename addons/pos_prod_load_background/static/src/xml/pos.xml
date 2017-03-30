@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates id="template" xml:space="preserve">
 
+    <t t-name="SyncProduct">
+        <span class="control-button sync_product">
+            Sync Products
+        </span>
+    </t>
+
     <t t-extend="ProductListWidget">
         <t t-jquery="div.product-list" t-operation="after">
             <t t-if="widget.pos.product_list.length == 0 ">
@@ -11,4 +17,48 @@
         </t>
     </t>
 
+    <t t-extend="ProductCategoriesWidget">
+        <t t-jquery="div.searchbox" t-operation="before">
+            <div class="product_progress_bar" style="display:none">
+<!--                 <span id="percent">40%</span> -->
+<!--                 <div id="bar"></div> -->
+                <div id="progress" class="graph">
+                    <div id="bar" style="width:0%">
+                        <p id="progress_status">0% complete</p>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </t>
+
+    <t t-extend="ClientListScreenWidget">
+        <t t-jquery="table.client-list thead tr" t-operation="append">
+            <th>Mobile</th>
+        </t>
+    </t>
+
+    <t t-extend="ClientLine">
+        <t t-jquery="tr.client-line" t-operation="append">
+            <td><t t-esc='partner.mobile or ""' /></td>
+        </t>
+    </t>
+    <t t-extend="ClientDetailsEdit">
+        <t t-jquery="div.client-details-right" t-operation="append">
+            <div class='client-detail'>
+                <span class='label'>Mobile</span>
+                <input class='detail client-mobile'  name='mobile'    type='text'    t-att-value='partner.mobile || ""'></input>
+            </div>
+        </t>
+    </t>
+    <t t-extend="ClientDetails">
+        <t t-jquery="div.client-details-right" t-operation="append">
+            <span class='label'>Mobile</span>
+            <t t-if='partner.mobile'>
+                <span class='detail mobile'><t t-esc='partner.mobile'/></span>
+            </t>
+            <t t-if='!partner.mobile'>
+                <span class='detail mobile empty'>N/A</span>
+            </t>
+        </t>
+    </t>
 </templates>

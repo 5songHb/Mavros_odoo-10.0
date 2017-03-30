@@ -9,8 +9,7 @@
             <table class="table table-condensed">
                 <thead>
                     <tr>
-                        <th>Code</th>
-                        <th class="text-right">Description</th>
+                        <th>Reference</th>
                         <th class="text-right">Qty</th>
                         <th class="text-right">Price</th>
                         <th t-if="display_discount" class="text-right" groups="sale.group_discount_per_so_line">Disc.(%)</th>
@@ -84,19 +83,39 @@
             <attribute name="groups">!sale.group_delivery_invoice_address</attribute>
         </xpath>
         <xpath expr="//div[@name='invoice_address']" position="before">
-            <div class="col-xs-5 col-xs-offset-7" groups="sale.group_delivery_invoice_address">
-                <strong t-if="o.partner_shipping_id == o.partner_id">Invoicing and shipping address:</strong>
+<!--             <div class="col-xs-5 col-xs-offset-7" groups="sale.group_delivery_invoice_address"> -->
+            <br></br>
+            <br></br>
+            <br></br>
+            <br></br>
+                <table class="table table-condensed">
+                    <tr>
+             <th>   <strong t-if="o.partner_shipping_id == o.partner_id">Invoicing and shipping address:</strong>
                 <strong t-if="o.partner_shipping_id != o.partner_id">Invoicing address:</strong>
+            </th>
+            <th>
+                <strong>Shipping address:</strong>
+            </th>
+            </tr>
+            <tbody class="invoice_tbody">
+                <tr>
+                    <td>
                 <div t-field="o.partner_id"
-                    t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>
+                    t-options='{"widget": "contact", "fields": ["address", "name","phone", "mobile"], "no_marker": True}'/>
                 <span t-if="o.partner_id.vat">TIN: <span t-field="o.partner_id.vat"/></span>
-                <div t-if="o.partner_shipping_id != o.partner_id" class="mt8">
-                    <strong>Shipping address:</strong>
+            </td>
+            <td>
+                <div t-if="o.partner_shipping_id != o.partner_id">
+                    
                     <div t-field="o.partner_shipping_id"
-                        t-options='{"widget": "contact", "fields": ["address", "name","mobile"], "no_marker": True}'/>
+                        t-options='{"widget": "contact", "fields": ["address", "name","phone","mobile"], "no_marker": True}'/>
                     <span t-if="o.partner_id.vat">TIN: <span t-field="o.partner_id.vat"/></span>
                 </div>
-            </div>
+            </td>
+            </tr>
+        </tbody>
+            </table>
+            <!-- </div> -->
         </xpath>
     </template>
 </odoo>

@@ -6,7 +6,6 @@ import datetime
 from odoo import api, fields, models
 import odoo.addons.decimal_precision as dp
 
-
 # class Product_Barcode(models.Model):
 #     _name="product.barcode"
 
@@ -29,7 +28,14 @@ class product_template(models.Model):
         print value
         return value
  
-    # 'name': fields.char('Name', required=True, translate=True),
+    @api.one
+    @api.depends('barcode')
+    def _compute_first_barcode(self):
+        if self.barcode:
+            self.first_barcode = self.barcode
+            print self.first_barcode
+
+    first_barcode = fields.Char(string='First Barcode',store=True, readonly=True, compute='_compute_first_barcode')
     manufacturer = fields.Char('Year',required=True,default=_default_current_year)
     brand = fields.Many2one('product.brand','Brand')
     category = fields.Selection([('summer','Summer'),('winter', 'Winter')],'Season')
@@ -46,20 +52,30 @@ class product_template(models.Model):
     product_barcodes = fields.Many2many('product.barcode', 'product_barcode_rel', 'product_barcode_rel_id1', 'product_barcode_rel_id2', 'Product Barcodes')
     # bar_code_ids = fields.One2many('product.barcode','product_tempalte_barcode_id',string="Multiple barcodes")
 
-
+    def first_barcode_generator(self):
+        print ("Calling Scheduler")
+        search_product_ids = self.search([])
+        for search_product_id in search_product_ids:
+            try:
+                print search_product_id
+                temp_product = self.browse(search_product_id.id)
+                print temp_product
+                if temp_product.barcode:
+                    temp_product.first_barcode = temp_product.barcode[:14]
+                print temp_product.first_barcode
+            except Exception:
+                print ("Error")
+                continue
 
 class SaleOrderLine(models.Model):
 
     _inherit = 'sale.order.line'
 
     def count_sale_order_delivered_product(self):
-        print "Running Scheduler"
-        
         query = """SELECT product_id,sum(qty_delivered) as total from sale_order_line group by product_id order by product_id"""
         self.env.cr.execute(query)
         query_results = self.env.cr.dictfetchall()
         for index in range(0, len(query_results)):
-            print query_results[index].get('product_id'),query_results[index].get('total')
             self.env['product.template'].search([('id','=',query_results[index].get('product_id'))]).write({
                 'ytd_wholesales' : query_results[index].get('total')
                 })
@@ -68,7 +84,6 @@ class SaleOrderLine(models.Model):
         self.env.cr.execute(query2)
         query_results_2 = self.env.cr.dictfetchall()
         for index in range(0, len(query_results_2)):
-            print query_results_2[index].get('product_id'),query_results_2[index].get('total_qty')
             self.env['product.template'].search([('id','=',query_results_2[index].get('product_id'))]).write({
                 'ytd_sales_retail' : query_results_2[index].get('total_qty')
                 })
@@ -300,3 +315,4 @@ class SaleOrderLine(models.Model):
 
     price_unit_no_tax = fields.Monetary(string='Unit Pice(No Tax)',
         store=True, readonly=True, compute='_compute_price_unit_no_tax')
+

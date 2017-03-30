@@ -26,7 +26,7 @@ class product_product(models.Model):
     @api.model
     def calculate_product(self):
         self._cr.execute("""
-                        SELECT count(id) FROM PRODUCT_TEMPLATE where available_in_pos='t'
+                        SELECT count(id) FROM PRODUCT_TEMPLATE where available_in_pos='t' and sale_ok='t'
                         """)
         total_product = self._cr.fetchall()
         return total_product

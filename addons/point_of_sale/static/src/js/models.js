@@ -305,9 +305,7 @@ exports.PosModel = Backbone.Model.extend({
         loaded: function(self, categories){
             self.db.add_categories(categories);
         },
-    },
-
-{
+    },{
         model:  'product.product',
         fields: ['display_name', 'list_price','price','pos_categ_id', 'taxes_id', 'barcode', 'default_code', 
                  'to_weight', 'uom_id', 'description_sale', 'description',

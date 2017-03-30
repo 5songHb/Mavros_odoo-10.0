@@ -2,7 +2,7 @@
 ##############################################################################
 #
 #    OpenERP, Open Source Management Solution
-#    Copyright (c) 2013-Present Acespritech Solutions Pvt. Ltd. (<http://acespritech.com>).
+#    Copyright (C) 2012-Today Acespritech Solutions Pvt Ltd
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Affero General Public License as
@@ -19,7 +19,13 @@
 #
 ##############################################################################
 
-import controllers
-import models
+from openerp import models, fields, api, _
+from datetime import datetime
+
+
+class product_template(models.Model):
+    _inherit = "product.template"
+
+    barcode_product_ids = fields.One2many('product.barcode', 'product_tmpl_id', 'Product Barcode')
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

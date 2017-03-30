@@ -142,7 +142,10 @@ class PurchaseOrderImportExport(models.Model):
                                 'date_planned': self.active_id.date_planned or date,
                                 'product_uom': product.product_tmpl_id.uom_po_id.id})
                                 if not vals.get('name'):
-                                    vals['name'] = product.product_tmpl_id.description_purchase or product.name
+                                    description = ''
+                                    if product.product_tmpl_id.description_sale:
+                                        description = product.product_tmpl_id.description_purchase
+                                    vals['name'] = "[" + code + "]" + product.name + ' ' + description
                                 self.env['purchase.order.line'].create(vals)
                             else:
                                 message += "Product Code: " + str(data_row[data_cols.index('CODE')]) + " invalid at Row " + str(row) + " and Column " + str(col) + "\n"
