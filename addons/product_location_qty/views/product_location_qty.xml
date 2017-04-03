@@ -1,18 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <openerp>
     <data>
-        <record id="view_product_template_inherit_view" model="ir.ui.view">
+<!--         <record id="view_product_template_inherit_view" model="ir.ui.view">
 			<field name="name">Product Template View</field>
 			<field name="model">product.template</field>
-			<field name="inherit_id" ref="product.product_template_tree_view"/>
+			<field name="inherit_id" ref="product_extends.view_product_extends_form"/>
 			<field name="arch" type="xml">
-				<field name="categ_id" position="after">
-						<field name="str_qty" />
+				<xpath expr="/group/separator" position="after">
+					<group>
+						<field name="str_qty"/>
 						<field name="kaz_qty"/>
                         <field name="led_qty"/>
-				</field>
+					</group>
+				</xpath>
 			</field>
-		</record>
+		</record> -->
 
         <record id="product_template_tree_view" model="ir.ui.view">
             <field name="name">Product Template Tree View</field>
@@ -30,12 +32,14 @@
         <record id="product_product_inherit_view" model="ir.ui.view">
 			<field name="name">Product Product View</field>
 			<field name="model">product.product</field>
-			<field name="inherit_id" ref="product.product_product_tree_view"/>
+			<field name="inherit_id" ref="product.product_normal_form_view"/>
 			<field name="arch" type="xml">
 				<field name="categ_id" position="after">
-						<field name="str_qty" />
+					<group>
+						<field name="str_qty" style = "width:200px"/>
 						<field name="kaz_qty"/>
                         <field name="led_qty"/>
+					</group>
 				</field>
 			</field>
 		</record>
@@ -59,7 +63,9 @@
 			<field name="inherit_id" ref="stock.view_location_form"/>
 			<field name="arch" type="xml">
 				<field name="location_id" position="after">
+					<group>
                         <field name="customise_name" />
+					</group>
 				</field>
 			</field>
 		</record>
