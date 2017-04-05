@@ -18,11 +18,19 @@ odoo.define('pos_coupon.pos_coupon', function(require) {
     models.load_models([{
         model: 'voucher.config',
         fields: [],
-        domain: function(self) {return [['active', '=', true]];},
-        loaded: function(self, wk_coupon_config) {
-            self.set({ 'wk_coupon_config': wk_coupon_config });
+        domain: function(self) {
+            return [
+                ['active', '=', true]
+            ];
         },
-    }, ], { 'after': 'product.product' });
+        loaded: function(self, wk_coupon_config) {
+            self.set({
+                'wk_coupon_config': wk_coupon_config
+            });
+        },
+    }, ], {
+        'after': 'product.product'
+    });
 
     var CreateConfurmPopupWidget = PopupWidget.extend({
         template: 'CreateConfurmPopupWidget',
@@ -33,53 +41,77 @@ odoo.define('pos_coupon.pos_coupon', function(require) {
             var currentOrder = self.pos.get('selectedOrder');
             this.$('#print-coupons').off('click').click(function() {
                 if (self.pos.config.iface_print_via_proxy) {
-                    (new Model('voucher.voucher')).call('get_coupon_data', [{ 'coupon_id': wk_obj.wk_id }])
-                    .then(function(result) {
-                        var receipt = currentOrder.export_for_printing();
-                        receipt['coupon'] = result;
-                        var t = QWeb.render('CouponXmlReceipt', {
-                            receipt: receipt,
-                            widget: self,
+                    (new Model('voucher.voucher')).call('get_coupon_data', [{
+                            'coupon_id': wk_obj.wk_id
+                        }])
+                        .then(function(result) {
+                            var receipt = currentOrder.export_for_printing();
+                            receipt['coupon'] = result;
+                            var t = QWeb.render('CouponXmlReceipt', {
+                                receipt: receipt,
+                                widget: self,
+                            });
+                            self.pos.proxy.print_receipt(t);
                         });
-                        self.pos.proxy.print_receipt(t);
-                    });
-                }else{
+                } else {
                     (new Model('voucher.voucher')).call('wk_print_report')
-                    .then(function(result){
-                        this.action_manager = new ActionManager1(this);
-                        this.action_manager.do_action(result,{ additional_context: { active_id: wk_obj.wk_id, active_ids: [wk_obj.wk_id], active_model: 'pos.coupons' } })
-                        self.gui.show_screen('products');
-                    })
-                    .fail(function(error, event) {
-                        event.preventDefault();
-                        self.gui.show_popup('error', {
-                            'title': _t('Error: Could not Save Changes'),
-                            'body': _t('Your Internet connection is probably down.'),
+                        .then(function(result) {
+                            this.action_manager = new ActionManager1(this);
+                            this.action_manager.do_action(result, {
+                                additional_context: {
+                                    active_id: wk_obj.wk_id,
+                                    active_ids: [wk_obj.wk_id],
+                                    active_model: 'pos.coupons'
+                                }
+                            })
+                            self.gui.show_screen('products');
+                        })
+                        .fail(function(error, event) {
+                            event.preventDefault();
+                            self.gui.show_popup('error', {
+                                'title': _t('Error: Could not Save Changes'),
+                                'body': _t('Your Internet connection is probably down.'),
+                            });
                         });
-                    });
                 }
             });
         },
     });
-    gui.define_popup({ name: 'create-confurm-screen', widget: CreateConfurmPopupWidget });
+    gui.define_popup({
+        name: 'create-confurm-screen',
+        widget: CreateConfurmPopupWidget
+    });
 
     var CreateCouponPopupWidget = PopupWidget.extend({
         template: 'CreateCouponPopupWidget',
 
-        saveBackend: function(name, validity, availability, coupon_value, note, customer_type, partner_id, voucher_usage, amount_type, max_expiry_date, redeemption_limit) {
+        saveBackend: function(name, validity, availability, coupon_value, note, customer_type, partner_id, voucher_usage, amount_type, max_expiry_date, redeemption_limit, partial_redeem) {
             self = this;
-            (new Model('voucher.voucher')).call('create_coupons', [{ 'name': name, 'validity': validity, 'total_available': availability, 'coupon_value': coupon_value, 'note': note, 'customer_type': customer_type, 'partner_id': partner_id, 'voucher_usage': voucher_usage, 'amount_type': amount_type, 'max_expiry_date': max_expiry_date, 'redeemption_limit': redeemption_limit }])
-            .fail(function(unused, event) {
-                self.gui.show_popup('error', {
-                    'title': _t('Error !!!'),
-                    'body': _t("Error in creating voucher !!!!"),
+            (new Model('voucher.voucher')).call('create_coupons', [{
+                    'name': name,
+                    'validity': validity,
+                    'total_available': availability,
+                    'coupon_value': coupon_value,
+                    'note': note,
+                    'customer_type': customer_type,
+                    'partner_id': partner_id,
+                    'voucher_usage': voucher_usage,
+                    'amount_type': amount_type,
+                    'max_expiry_date': max_expiry_date,
+                    'redeemption_limit': redeemption_limit,
+                    'partial_redeem': partial_redeem
+                }])
+                .fail(function(unused, event) {
+                    self.gui.show_popup('error', {
+                        'title': _t('Error !!!'),
+                        'body': _t("Error in creating voucher !!!!"),
+                    });
+                })
+                .done(function(result) {
+                    self.gui.show_popup('create-confurm-screen', {
+                        'wk_id': result,
+                    });
                 });
-            })
-            .done(function(result) {
-                self.gui.show_popup('create-confurm-screen', {
-                    'wk_id': result,
-                });
-            });
         },
 
         renderElement: function() {
@@ -95,11 +127,14 @@ odoo.define('pos_coupon.pos_coupon', function(require) {
                 $("input[name=wk_redeemption_limit]").val(wk_config[0].partial_limit);
                 $("#wk_partial_redeemed").attr('checked', wk_config[0].partially_use);
             }
-            $("select[name=wk_customer_type]").change(function(){
-                if ($(this).val() == 'special_customer')
+            $("select[name=wk_customer_type]").change(function() {
+                if ($(this).val() == 'special_customer') {
                     $("input[name=wk_coupon_availability]").parent().hide();
-                else
+                    $("#wk_partial_redeemed").parent().parent().parent().show();
+                } else {
                     $("input[name=wk_coupon_availability]").parent().show();
+                    $("#wk_partial_redeemed").parent().parent().parent().hide();
+                }
             });
             this.$('.wk_create_coupon_button').click(function() {
                 function isNumber(o) {
@@ -107,14 +142,12 @@ odoo.define('pos_coupon.pos_coupon', function(require) {
                 }
                 var wk_config = self.pos.get('wk_coupon_config');
                 var order = self.pos.get('selectedOrder');
-                if (wk_config == false)
-                {
-                   self.gui.show_popup('error', {
-                    'title': _t('Error !!!'),
-                    'body': _t("Coupon Configuration is Required"),
+                if (wk_config == false) {
+                    self.gui.show_popup('error', {
+                        'title': _t('Error !!!'),
+                        'body': _t("Coupon Configuration is Required"),
                     });
-                }
-                else{
+                } else {
                     $("input[name=wk_coupon_name]").removeClass("wk_text_error");
                     $("input[name=wk_coupon_validity]").removeClass("wk_text_error");
                     $("input[name=wk_coupon_availability]").removeClass("wk_text_error");
@@ -139,63 +172,67 @@ odoo.define('pos_coupon.pos_coupon', function(require) {
                     var max_expiry_date = wk_config[0].max_expiry_date;
                     if (name != '') {
                         if (isNumber(validity)) {
-                            if (isNumber(availability) && availability !=0) {
+                            if (isNumber(availability) && availability != 0) {
                                 if (isNumber(coupon_value) && coupon_value != 0) {
-                                    if (parseInt(coupon_value) >= wk_config[0].min_amount && parseInt(coupon_value) <= wk_config[0].max_amount) {
-                                        if (customer_type == 'special_customer') {
-                                            if (order.get_client() == null) {
-                                                self.gui.show_popup('error', {
-                                                    'title': _t('Error !!!'),
-                                                    'body': _t("Please Select Customer!!!!"),
+                                    if (!(amount_type == 'percent' && (coupon_value < 0 || coupon_value > 100))) {
+                                        if (parseInt(coupon_value) >= wk_config[0].min_amount && parseInt(coupon_value) <= wk_config[0].max_amount) {
+                                            if (customer_type == 'special_customer') {
+                                                if (order.get_client() == null) {
+                                                    self.gui.show_popup('error', {
+                                                        'title': _t('Error !!!'),
+                                                        'body': _t("Please Select Customer!!!!"),
                                                     });
-                                            }else{
-                                                if (partial_redeem == true) {
-                                                    if (redeemption_limit == 0)
-                                                        $('.valid_error_redeeemption').html("This field is required & should not be 0");
-                                                    else {
-                                                        self.saveBackend(name, validity, availability, coupon_value, note, customer_type, order.get_client().id, voucher_usage, amount_type, max_expiry_date, redeemption_limit);
-                                                    }
+                                                } else {
+                                                    if (partial_redeem == true) {
+                                                        if (redeemption_limit == 0)
+                                                            $('.valid_error_redeeemption').html("This field is required & should not be 0");
+                                                        else {
+                                                            self.saveBackend(name, validity, availability, coupon_value, note, customer_type, order.get_client().id, voucher_usage, amount_type, max_expiry_date, redeemption_limit, partial_redeem);
+                                                        }
 
-                                                }else
-                                                    self.saveBackend(name, validity, availability, coupon_value, note, customer_type, order.get_client().id, voucher_usage, amount_type, max_expiry_date, -1);
-                                            }
-                                        }else
-                                            self.saveBackend(name, validity, availability, coupon_value, note, customer_type, false, voucher_usage, amount_type, max_expiry_date, -1);
-                                    }else{
-                                        if (parseInt(coupon_value) < wk_config[0].min_amount)
-                                            $('.wk_valid_error').html("(Min. allowed value is " + wk_config[0].min_amount + ")");
-                                        else
-                                            $('.wk_valid_error').html("(Max. allowed value is " + wk_config[0].max_amount + ")");
+                                                    } else
+                                                        self.saveBackend(name, validity, availability, coupon_value, note, customer_type, order.get_client().id, voucher_usage, amount_type, max_expiry_date, -1, false);
+                                                }
+                                            } else
+                                                self.saveBackend(name, validity, availability, coupon_value, note, customer_type, false, voucher_usage, amount_type, max_expiry_date, -1, false);
+                                        } else {
+                                            if (parseInt(coupon_value) < wk_config[0].min_amount)
+                                                $("input[name=wk_coupon_value]").parent().find('.wk_valid_error').html("(Min. allowed value is " + wk_config[0].min_amount + ")");
+                                            else
+                                                $("input[name=wk_coupon_value]").parent().find('.wk_valid_error').html("(Max. allowed value is " + wk_config[0].max_amount + ")");
+                                        }
+                                    } else {
+                                        $("input[name=wk_coupon_value]").parent().find('.wk_valid_error').html("Must be > 0 & <=100");
                                     }
-                                }else
-                                {
+                                } else {
                                     $("input[name=wk_coupon_value]").addClass("wk_text_error");
                                     /*$('.wk_valid_error').html("Value should be >=0");*/
                                     $("input[name=wk_coupon_value]").parent().find('.wk_valid_error').html("Value should be >=0");
                                 }
-                            }else
-                            {
+                            } else {
                                 $("input[name=wk_coupon_availability]").addClass("wk_text_error");
                                 $("input[name=wk_coupon_availability]").parent().find('.wk_valid_error').html("Validity can't be 0");
                             }
                         } else
                             $("input[name=wk_coupon_validity]").addClass("wk_text_error");
-                    } else 
+                    } else
                         $("input[name=wk_coupon_name]").addClass("wk_text_error");
                 }
             });
         },
     });
-    gui.define_popup({ name: 'create_coupon_popup_widget', widget: CreateCouponPopupWidget });
+    gui.define_popup({
+        name: 'create_coupon_popup_widget',
+        widget: CreateCouponPopupWidget
+    });
 
     var RedeemPopupRetryWidget = PopupWidget.extend({
         template: 'RedeemPopupRetryWidget',
-
         show: function(options) {
             this._super(options);
             this.gui.play_sound('error');
         },
-        renderElement: function(){
+        renderElement: function() {
             var self = this;
             this._super();
             this.$('#wk-retry-coupons').click(function() {
@@ -203,12 +240,15 @@ odoo.define('pos_coupon.pos_coupon', function(require) {
             });
         },
     });
-    gui.define_popup({ name: 'redeem_coupon_retry_popup_widget', widget: RedeemPopupRetryWidget });
+    gui.define_popup({
+        name: 'redeem_coupon_retry_popup_widget',
+        widget: RedeemPopupRetryWidget
+    });
 
     var RedeemPopupValidateWidget = PopupWidget.extend({
         template: 'RedeemPopupValidateWidget',
 
-        show: function(options){
+        show: function(options) {
             var self = this;
             this._super(options);
             self.wk_product_id = options.wk_product_id;
@@ -223,39 +263,42 @@ odoo.define('pos_coupon.pos_coupon', function(require) {
 
             this.$('#wk-retry-coupons').click(function() {
                 (new Model('voucher.voucher')).call('redeem_voucher_create_histoy', [self.coupon_name, self.secret_code, self.total_val, false, false, 'pos'])
-                .fail(function(unused, event){
-                     self.gui.show_popup('error', {
-                    'title': _t('Error !!!'),
-                    'body': _t("Connection Error. Try again later !!!!"),
+                    .fail(function(unused, event) {
+                        self.gui.show_popup('error', {
+                            'title': _t('Error !!!'),
+                            'body': _t("Connection Error. Try again later !!!!"),
+                        });
+                    })
+                    .done(function(result) {
+                        if (result['status']) {
+
+                            selectedOrder.coupon_id = self.secret_code;
+                            selectedOrder.wk_product_id = self.wk_product_id;
+                            selectedOrder.wk_voucher_value = self.total_val;
+                            selectedOrder.history_id = result['history_id'];
+                            var product = self.pos.db.get_product_by_id(self.wk_product_id);
+                            var last_orderline = selectedOrder.get_last_orderline();
+                            last_orderline.coupon_name = self.coupon_name;
+                            if (product != undefined) {
+                                selectedOrder.add_product(product, {
+                                    price: -(self.total_val)
+                                });
+                                self.gui.show_screen('products');
+                            } else {
+                                self.gui.show_popup('error', {
+                                    'title': _t('Error !!!'),
+                                    'body': _t("Voucher product not available in POS. Please make the voucher product available in POS"),
+                                });
+                            }
+                        }
                     });
-                })
-                .done(function(result){
-                    if (result['status']) {
-                        selectedOrder.coupon_id = self.secret_code;
-                        selectedOrder.wk_product_id = self.wk_product_id;
-                        selectedOrder.wk_voucher_value = self.total_val;
-                        selectedOrder.history_id = result['history_id'];
-                        var product = self.pos.db.get_product_by_id(self.wk_product_id);
-                        var last_orderline = selectedOrder.get_last_orderline();
-                        last_orderline.coupon_name = self.coupon_name;
-                        if (product != undefined)
-                        {
-                            selectedOrder.add_product(product, { price: -(self.total_val) });
-                            self.gui.show_screen('products');
-                        }
-                        else
-                        {
-                            self.gui.show_popup('error', {
-                                'title': _t('Error !!!'),
-                                'body': _t("Voucher product not available in POS. Please make the voucher product available in POS"),
-                            });
-                        }
-                    }
-                });
             });
         },
     });
-    gui.define_popup({ name: 'redeem_coupon_validate_popup_widget', widget: RedeemPopupValidateWidget });
+    gui.define_popup({
+        name: 'redeem_coupon_validate_popup_widget',
+        widget: RedeemPopupValidateWidget
+    });
 
     var RedeemPopupWidget = PopupWidget.extend({
         template: 'RedeemPopupWidget',
@@ -264,115 +307,122 @@ odoo.define('pos_coupon.pos_coupon', function(require) {
             var self = this;
             this._super();
             var order = self.pos.get('selectedOrder');
-            if (order == null)
-            {
+            if (order == null) {
                 return false;
             }
             var orderlines = order.orderlines;
             var coupon_product = true;
             var prod_list = []
             var selected_prod_percent_price = 0
-            for (var i = 0; i < orderlines.models.length; i++)
-            {
+            for (var i = 0; i < orderlines.models.length; i++) {
                 prod_list.push(orderlines.models[i].product.id);
             }
             this.$('#wk-redeem-coupons').click(function() {
                 var secret_code = $("#coupon_8d_code").val();
                 (new Model('voucher.voucher')).call('validate_voucher', [secret_code, order.get_total_with_tax(), prod_list, 'pos', order.get_client() ? order.get_client().id : 0])
-                .fail(function(unused, event) {
-                    self.gui.show_popup('error', {
-                        'title': _t('Error !!!'),
-                        'body': _t('Connection Error. Try again later !!!!'),
-                    });
-                })
-                .done(function(result){
-                    if(orderlines.models.length){
-                        for (var i = 0; i < orderlines.models.length; i++) {
-                            if (orderlines.models[i].product.id == result.product_id)
-                                coupon_product = false;
-                            if (result.product_ids !== undefined)
-                                if ($.inArray(orderlines.models[i].product.product_tmpl_id, result.product_ids) !== -1)
-                                    selected_prod_percent_price += orderlines.models[i].price * orderlines.models[i].quantity;
-                        }
-                        if (coupon_product){
-                            if (result.status) {
-                                var total_amount = order.get_total_with_tax();
-                                var msg;
-                                var total_val;
-                                var res_value = result.value;
-                                if (result.customer_type == 'general') {
-                                    if (result.voucher_val_type == 'percent'){
-                                        res_value = (total_amount * result.value) / 100;
-                                        if (result.applied_on == 'specific')
-                                            res_value = (selected_prod_percent_price * result.value) / 100;
-                                        else
-                                            total_amount = selected_prod_percent_price;
+                    .fail(function(unused, event) {
+                        self.gui.show_popup('error', {
+                            'title': _t('Error !!!'),
+                            'body': _t('Connection Error. Try again later !!!!'),
+                        });
+                    })
+                    .done(function(result) {
+                        if (orderlines.models.length) {
+                            for (var i = 0; i < orderlines.models.length; i++) {
+                                if (orderlines.models[i].product.id == result.product_id)
+                                    coupon_product = false;
+                                if (result.product_ids !== undefined)
+                                    if ($.inArray(orderlines.models[i].product.product_tmpl_id, result.product_ids) !== -1)
+                                        selected_prod_percent_price += orderlines.models[i].price * orderlines.models[i].quantity;
+                            }
+                            if (coupon_product) {
+                                if (result.status) {
+                                    var total_amount = order.get_total_with_tax();
+                                    var msg;
+                                    var total_val;
+                                    var res_value = result.value;
+                                    if (result.customer_type == 'general') {
+                                        if (result.voucher_val_type == 'percent') {
+                                            res_value = (total_amount * result.value) / 100;
+                                            if (result.applied_on == 'specific')
+                                                res_value = (selected_prod_percent_price * result.value) / 100;
+                                            else
+                                                total_amount = res_value;
+                                        } else {
+                                            if (result.applied_on == 'specific')
+                                                total_amount = selected_prod_percent_price
+                                        }
                                     }
-                                }
-                                if (total_amount < res_value) {
-                                    msg = total_amount;
-                                    total_val = total_amount;
-                                } else {
-                                    msg = res_value;
-                                    total_val = res_value;
-                                }
-                                msg = parseFloat(round_di(msg, 2).toFixed(2));
-                                self.gui.show_popup('redeem_coupon_validate_popup_widget', {
-                                    'title': _t(result.message),
-                                    'msg': _t(msg),
-                                    'wk_product_id': result.product_id,
-                                    'secret_code': result.coupon_id,
-                                    'total_val': total_val,
-                                    'coupon_name': result.coupon_name,
-                                    'coupon_code': result.voucher_code,
+                                    if (total_amount < res_value) {
+                                        msg = total_amount;
+                                        total_val = total_amount;
+                                    } else {
+                                        msg = res_value;
+                                        total_val = res_value;
+                                    }
+                                    msg = parseFloat(round_di(msg, 2).toFixed(2));
+                                    self.gui.show_popup('redeem_coupon_validate_popup_widget', {
+                                        'title': _t(result.message),
+                                        'msg': _t(msg),
+                                        'wk_product_id': result.product_id,
+                                        'secret_code': result.coupon_id,
+                                        'total_val': total_val,
+                                        'coupon_name': result.coupon_name,
+                                        'coupon_code': result.voucher_code,
 
-                                });
+                                    });
+                                } else {
+                                    self.gui.show_popup('redeem_coupon_retry_popup_widget', {
+                                        'title': _t("Error: " + result.message),
+                                    });
+                                }
                             } else {
-                                self.gui.show_popup('redeem_coupon_retry_popup_widget', {
-                                    'title': _t("Error: " + result.message),
+                                self.gui.show_popup('error', {
+                                    'title': _t('Error !!!'),
+                                    'body': _t("Sorry, you can't use more than one coupon in single order."),
                                 });
                             }
                         } else {
                             self.gui.show_popup('error', {
                                 'title': _t('Error !!!'),
-                                'body': _t("Sorry, you can't use more than one coupon in single order."),
+                                'body': _t("Sorry, there is no product in order line."),
                             });
                         }
-                    }else {
-                        self.gui.show_popup('error', {
-                            'title': _t('Error !!!'),
-                            'body': _t("Sorry, there is no product in order line."),
-                        });
-                    }
-                });
+                    });
             });
         },
     });
-    gui.define_popup({ name: 'redeem_coupon_popup_widget', widget: RedeemPopupWidget });
+    gui.define_popup({
+        name: 'redeem_coupon_popup_widget',
+        widget: RedeemPopupWidget
+    });
 
     var CouponPopupWidget = PopupWidget.extend({
         template: 'CouponPopupWidget',
 
-        renderElement: function(){
+        renderElement: function() {
             var self = this;
             this._super();
             this.$('#gift-coupons-create').click(function() {
                 if (self.pos.user.allow_coupon_create)
                     self.gui.show_popup('create_coupon_popup_widget', {});
-                else
-                {
+                else {
                     self.gui.show_popup('error', {
                         'title': _t('Error !!!'),
                         'body': _t("Access denied please contact your Administrator"),
                     });
                 }
             });
-            this.$('#gift-coupons-redeem').click(function(){
+            this.$('#gift-coupons-redeem').click(function() {
                 self.gui.show_popup('redeem_coupon_popup_widget', {});
+                $('#coupon_8d_code').focus();
             });
         },
     });
-    gui.define_popup({ name: 'coupon_popup_widget', widget: CouponPopupWidget });
+    gui.define_popup({
+        name: 'coupon_popup_widget',
+        widget: CouponPopupWidget
+    });
 
     var CouponButtonWidget = screens.ActionButtonWidget.extend({
         template: 'CouponButtonWidget',
@@ -397,10 +447,10 @@ odoo.define('pos_coupon.pos_coupon', function(require) {
             this.history_id = 0;
             _super.prototype.initialize.apply(this, arguments);
         },
-        export_as_JSON: function(){
+        export_as_JSON: function() {
             var json = _super.prototype.export_as_JSON.apply(this, arguments);
             var order = this.pos.get('selectedOrder');
-            if (order != null){
+            if (order != null) {
                 var orderlines = order.orderlines;
                 var coupon_state = true;
                 for (var i = 0; i < orderlines.models.length; i++)
@@ -418,29 +468,31 @@ odoo.define('pos_coupon.pos_coupon', function(require) {
     models.PosModel = models.PosModel.extend({
         _save_to_server: function(orders, options) {
             var self = this;
-            return SuperPosModel._save_to_server.call(this,orders,options).then(function(server_ids){
+            return SuperPosModel._save_to_server.call(this, orders, options).then(function(server_ids) {
                 /*-------------CODE FOR POS VOUCHERS START------*/
                 if (server_ids) {
                     var wk_order = self.get_order();
-                    var coupon_id = wk_order.coupon_id;
-                    var wk_product_id = wk_order.wk_product_id;
-                    var wk_voucher_value = wk_order.wk_voucher_value;
-                    for (var i = 0; i < wk_order.orderlines.models.length; i++) {
-                        if (wk_order.orderlines.models[i].product.id == wk_product_id) {
-                            var client_id = false;
-                            if (self.get_client()) {
-                                client_id = self.get_client().id;
-                            }
-                            console.log('wk_orderlines', wk_order.orderlines.models[i].id);
+                    if (wk_order != null) {
+                        var coupon_id = wk_order.coupon_id;
+                        var wk_product_id = wk_order.wk_product_id;
+                        var wk_voucher_value = wk_order.wk_voucher_value;
+                        for (var i = 0; i < wk_order.orderlines.models.length; i++) {
+                            if (wk_order.orderlines.models[i].product.id == wk_product_id) {
+                                var client_id = false;
+                                if (self.get_client()) {
+                                    client_id = self.get_client().id;
+                                }
+                                console.log('wk_orderlines', wk_order.orderlines.models[i].id);
 
-                            (new Model('voucher.voucher')).call('pos_create_histoy', [coupon_id, wk_voucher_value, server_ids[0], wk_order.orderlines.models[i].id, client_id])
-                            .fail(function(unused, event) {
-                                self.gui.show_popup('error', {
-                                    'title': _t('Error !!!'),
-                                    'body': _t("Connection Error. Try again later !!!"),
-                                });
-                            })
-                            .done(function(result) {});
+                                (new Model('voucher.voucher')).call('pos_create_histoy', [coupon_id, wk_voucher_value, server_ids[0], wk_order.orderlines.models[i].id, client_id])
+                                    .fail(function(unused, event) {
+                                        self.gui.show_popup('error', {
+                                            'title': _t('Error !!!'),
+                                            'body': _t("Connection Error. Try again later !!!"),
+                                        });
+                                    })
+                                    .done(function(result) {});
+                            }
                         }
                     }
                 }
@@ -452,21 +504,18 @@ odoo.define('pos_coupon.pos_coupon', function(require) {
 
 
     screens.NumpadWidget.include({
-       clickAppendNewChar: function(event) {
-        var order = this.pos.get_order();
-        var p_id =  order.get_selected_orderline();
-        if (order.get_selected_orderline() && (order.wk_product_id === order.get_selected_orderline().product.id))
-        {
-             self.gui.show_popup('error', {
-                'title': _t('Error !!!'),
-                'body': _t("You can not change the quantity, discount or price of the applied voucher"),
-            });
-        }
-        else
-        {
-          this._super(event);
-        }
-    },
+        clickAppendNewChar: function(event) {
+            var order = this.pos.get_order();
+            var p_id = order.get_selected_orderline();
+            if (order.get_selected_orderline() && (order.wk_product_id === order.get_selected_orderline().product.id)) {
+                self.gui.show_popup('error', {
+                    'title': _t('Error !!!'),
+                    'body': _t("You can not change the quantity, discount or price of the applied voucher"),
+                });
+            } else {
+                this._super(event);
+            }
+        },
     });
-               
+
 });
