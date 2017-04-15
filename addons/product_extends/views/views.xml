@@ -417,6 +417,16 @@
         </field>
       </field>
     </record>
-      
+
+        <record id="account_view_account_move_filter" model="ir.ui.view">
+            <field name="name">account.move.search.inherit</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_account_move_filter"/>
+            <field name="arch" type="xml">
+                <xpath expr="/search/group" position="after">
+                <field string="Label" name="line_ids" widget="one2many_list" context="{'group_by':'field_name'}"/>
+              </xpath>
+              </field>
+          </record>
   </data>
 </odoo>
