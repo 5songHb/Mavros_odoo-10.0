@@ -188,10 +188,10 @@ class VoucherVoucher(models.Model):
 	@api.model
 	def create(self, vals):
 		history_values = {}
-		voucher_amount = 0
+		
 		default_values = self.env['voucher.config']._get_default_values()
-		if vals['validity'] == 0:
-			raise  ValidationError(('Validity can`t be 0.'))
+		# if vals['validity'] == 0:
+		# 	raise  ValidationError(('Validity can`t be 0.'))
 		if vals['total_available'] == 0:
 			raise  ValidationError(('Total Availability can`t be 0. Choose -1 for unlimited or greater than 0 !!!'))
 		if vals['voucher_value'] < default_values['min_amount']:
@@ -229,8 +229,6 @@ class VoucherVoucher(models.Model):
 			raise  ValidationError(('Voucher Applicable date is not correct. Either you can make voucher applicable from today or from a future date.'))
 		if vals['redeemption_limit'] and  vals['redeemption_limit'] == 0:
 			raise  ValidationError(('You cannnot set Reedemption limit To 0'))
-		if vals['customer_type'] == 'special_customer':
-			voucher_amount += vals['voucher_value']
 		if vals['voucher_val_type'] == 'percent':
 			if vals.get('voucher_value') < 0 or vals.get('voucher_value') >100:
 				raise  ValidationError(('The percentage value should be within 0 and 100'))
@@ -238,7 +236,7 @@ class VoucherVoucher(models.Model):
 		history_values = {
 			'name':vals['name'],
 			'create_date':datetime.now(),
-			'voucher_value':voucher_amount,
+			'voucher_value':vals['voucher_value'],
 			'transaction_type':'credit',
 			'channel_used':vals['voucher_usage'],
 			'voucher_id':res.id
@@ -471,7 +469,7 @@ class VoucherVoucher(models.Model):
 			voucher_obj  = self.env['voucher.voucher'].sudo().browse(voucher_id)
 			status = True
 			voucher_obj  = self.browse(voucher_id)
-			if voucher_obj.customer_type == 'general':
+			if refrence != 'pos' and voucher_obj.customer_type == 'general':
 				if voucher_obj.total_available > 0:
 					voucher_obj.sudo().write({'total_available':voucher_obj.total_available - 1,'date_of_last_usage':datetime.now().date()})
 			result['status'] = status

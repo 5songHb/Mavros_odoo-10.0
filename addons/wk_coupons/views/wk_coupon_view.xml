@@ -120,6 +120,5 @@
 
 		<menuitem id="id_parent_voucher_voucher" name="Gift Vouchers" parent="sales_team.menu_base_partner" />
 		<menuitem  id="voucher_voucher_tree_menu_id" name="All Vouchers" parent="id_parent_voucher_voucher" action="voucher_voucher_action_tree" sequence="1"/>
-		<!-- <menuitem  id="website_voucher_history_menu_id" name="Voucher History" parent="id_parent_website_voucher" action="website_voucher_history_action_form" sequence="2"/> -->
 	</data>
 </openerp>

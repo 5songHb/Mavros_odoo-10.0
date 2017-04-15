@@ -16,7 +16,7 @@
                     <div id="gift-coupons-create" class="wk_coupon_button wk_button_float1">
                         <img src="/pos_coupons/static/src/img/icon-create-coupon.png" width="150" height="100"/>
                         <div class="wk_coupon_top_text">
-                        Press Here to
+                        Click here to
                         </div>
                         <div class="wk_coupon_bottom_text">
                             Create New Coupon  
@@ -26,10 +26,10 @@
                     <img src="/pos_coupons/static/src/img/icon-redeem-coupon.png" width="150" height="100"/>
 
                     <div class="wk_coupon_top_text">
-                        Press Here to Redeem
+                        Click here to Redeem
                     </div>
                     <div class="wk_coupon_bottom_text">
-                        Existing Gift Coupon  
+                        existing Gift Coupon  
                     </div>
                 </div>
             </div>
@@ -108,10 +108,10 @@
                     </td>
                 </tr>
                
-                <tr>
+                <tr style="display:none">
                     <td>
                         <div class="wk_coupon_form_block">
-                        <input type="checkbox" id="wk_partial_redeemed" class="slected_customer" value="value"/><label name="wk_partial_redeemed">Partial Redeemption</label>
+                        <input type="checkbox" id="wk_partial_redeemed" class="slected_customer" value="value"/><label name="wk_partial_redeemed">Partial Redemption</label>
                         </div> 
                     </td>
                     <td>
