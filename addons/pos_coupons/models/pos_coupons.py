@@ -78,6 +78,7 @@ class VoucherVoucher(models.Model):
     @api.model
     def pos_create_histoy(self, coupon_id=False, wk_voucher_value=False, order_id=False, order_line_id=False, partner_id=False):
         values = {}
+        _logger.info('----------------------%r',coupon_id,wk_voucher_value)
         if coupon_id:
             voucher_obj = self.browse(coupon_id)
             values = {
