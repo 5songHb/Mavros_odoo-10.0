@@ -53,7 +53,7 @@ class PurchaseOrderLine(models.Model):
                 line.price_unit = prices[line.id]
 
     discount = fields.Float(
-        string='Discount (%)', digits_compute=dp.get_precision('Discount'))
+        string='Discount (%)', digits=dp.get_precision('Discount'))
     internal_refernce =fields.Char(string="Internal Reference ")
 
     _sql_constraints = [
