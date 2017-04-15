@@ -76,7 +76,7 @@ class SaleOrderLine(models.Model):
         self.env.cr.execute(query)
         query_results = self.env.cr.dictfetchall()
         for index in range(0, len(query_results)):
-            self.env['product.template'].search([('id','=',query_results[index].get('product_id'))]).write({
+            self.env['product.product'].search([('id','=',query_results[index].get('product_id'))]).write({
                 'ytd_wholesales' : query_results[index].get('total')
                 })
         
@@ -84,7 +84,7 @@ class SaleOrderLine(models.Model):
         self.env.cr.execute(query2)
         query_results_2 = self.env.cr.dictfetchall()
         for index in range(0, len(query_results_2)):
-            self.env['product.template'].search([('id','=',query_results_2[index].get('product_id'))]).write({
+            self.env['product.product'].search([('id','=',query_results_2[index].get('product_id'))]).write({
                 'ytd_sales_retail' : query_results_2[index].get('total_qty')
                 })
 
