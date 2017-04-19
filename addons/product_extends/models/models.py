@@ -49,7 +49,7 @@ class product_template(models.Model):
     ytd_sales_retail = fields.Integer('YTD Sales Retail')
     ytd_wholesales = fields.Integer('YTD Wholesales')
     barcode_carton = fields.Char('Barcode Carton')
-    product_barcodes = fields.Many2many('product.barcode', 'product_barcode_rel', 'product_barcode_rel_id1', 'product_barcode_rel_id2', 'Product Barcodes')
+    # product_barcodes = fields.Many2many('product.barcode', 'product_barcode_rel', 'product_barcode_rel_id1', 'product_barcode_rel_id2', 'Product Barcodes')
     # bar_code_ids = fields.One2many('product.barcode','product_tempalte_barcode_id',string="Multiple barcodes")
 
     def first_barcode_generator(self):
@@ -57,7 +57,6 @@ class product_template(models.Model):
         search_product_ids = self.search([])
         for search_product_id in search_product_ids:
             try:
-                print search_product_id
                 temp_product = self.browse(search_product_id.id)
                 print temp_product
                 if temp_product.barcode:
