@@ -58,6 +58,8 @@ class DataSet(http.Controller):
         cr, uid, context = request.cr, request.uid, request.context
         records = []
         fields = [];
+        if eval(kw.get('fields')):
+            fields = eval(kw.get('fields'))
         domain = [('customer', '=', True)];
         Model = kw.get('model')
         try:
