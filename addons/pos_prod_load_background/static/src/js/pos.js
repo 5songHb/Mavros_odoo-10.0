@@ -40,6 +40,7 @@ odoo.define('pos_prod_load_background.pos', function (require) {
 	            this.product_fields = [];
 	            this.product_domain = [];
 	            this.product_context = {};
+	            this.partner_fields = [];
 	    },
 		fetch: function(model, fields, domain, ctx){
             this._load_progress = (this._load_progress || 0) + 0.05; 
@@ -71,18 +72,18 @@ odoo.define('pos_prod_load_background.pos', function (require) {
                     var ids     = typeof model.ids === 'function'     ? model.ids(self,tmp) : model.ids;
                     var order   = typeof model.order === 'function'   ? model.order(self,tmp):    model.order;
                     if ( model.model && $.inArray(model.model,['product.product', 'res.partner']) == -1) {
-//					if ( model.model ){
                         self.chrome.loading_message(_t('Loading')+' '+(model.label || model.model || ''), progress);
                     } else if(model.model && model.model == 'product.product') {
                         self.product_domain = self.product_domain.concat(model.domain);
                         self.product_fields = self.product_fields.concat(model.fields);
                         self.product_context = $.extend(self.product_context, context)
+                    } else if(model.model && model.model == 'res.partner') {
+                    	self.partner_fields = self.partner_fields.concat(model.fields);
                     }
                     progress += progress_step;
                    
                     var records;
                     if( model.model && $.inArray(model.model,['product.product', 'res.partner']) == -1){
-//					if( model.model ){
                         if (model.ids) {
                             records = new Model(model.model).call('read',[ids,fields],context);
                         } else {
@@ -130,7 +131,8 @@ odoo.define('pos_prod_load_background.pos', function (require) {
     	   var self = this;
     	   var def  = new $.Deferred();
     	   if(self.partners_load){
-	           var fields = ['name','street','city','state_id','country_id','vat','phone','zip','mobile','email','barcode','write_date'];
+	           var fields = self.partner_fields ? self.partner_fields :
+   	            ['name','street','city','state_id','country_id','vat','phone','zip','mobile','email','barcode','write_date'];
 	           new Model('res.partner')
 	               .query(fields)
 	               .filter([['customer','=',true],['write_date','>',this.db.get_partner_write_date()]])
@@ -213,7 +215,6 @@ odoo.define('pos_prod_load_background.pos', function (require) {
 							                ajax_product_load()
 						            },
 						            error: function() {
-						                console.log('Product loading failed.');
 						                $('.product_progress_bar').find('#bar').css('width', '100%', 'important');
 					            		$('.product_progress_bar').find('#progress_status').html("Products loading failed...");
 						            },
@@ -287,13 +288,16 @@ odoo.define('pos_prod_load_background.pos', function (require) {
 		init: function(parent, options){
 			var self = this;
 			this._super(parent, options);
+			self.pos.partners_load = false;
 			$.ajax({
 	            type: "GET",
 	            url: '/web/dataset/load_customers',
-	            data: {model: 'res.partner'},
+	            data: {model: 'res.partner',
+            		   fields: JSON.stringify(self.pos.product_fields)},
 	            success: function(res) {
 	                self.pos.partners = JSON.parse(res);
 	                self.pos.partners_load = true;
+	                $('.cust_loading').html('');
 	                self.pos.db.add_partners(JSON.parse(res));
 	                self.render_list(self.pos.db.get_partners_sorted(1000));
 	            },
@@ -326,7 +330,12 @@ odoo.define('pos_prod_load_background.pos', function (require) {
 	        });
 
 	        var partners = this.pos.db.get_partners_sorted(1000);
-	        this.render_list(partners);
+	        if(this.pos.partners_load){
+	        	this.render_list(partners);
+	        } else {
+	        	this.render_list([]);
+	        }
+	        
 
 	        if(partners.length > 0){
 	        	this.reload_partners();
@@ -361,6 +370,7 @@ odoo.define('pos_prod_load_background.pos', function (require) {
 	        });
 		},
 		render_list: function(partners){
+			var self = this;
 	        var contents = this.$el[0].querySelector('.client-list-contents');
 	        contents.innerHTML = "";
 	        if(partners.length > 0){
@@ -399,17 +409,18 @@ odoo.define('pos_prod_load_background.pos', function (require) {
 	                this.gui.back();
 	            }else if(associate_result && (customer_load.length == 0 || !self.pos.partners_load)){
 //	            	call when customers are loading and cashier want to search customer
-                    var domain = [['customer', '=', true],'|', '|',['name', 'ilike', query], ['phone', 'ilike', query], ['mobile', 'ilike', query]];
+                    var domain = [['customer', '=', true],'|', '|',['name', 'ilike', query], ['phone', '=', query], ['mobile', '=', query]];
                 	var model = new Model("res.partner");
-            		var fields = ['name','street','city','state_id','country_id','vat','phone','zip','mobile','email','barcode','write_date'];
+            		var fields = self.pos.partner_fields ? self.pos.partner_fields :
+            			['name','street','city','state_id','country_id','vat','phone','zip','mobile','email','barcode','write_date'];
             		model.call("search_read", [domain=domain, fields=fields]).pipe(
                         function(result) {
                         	if(result.length > 0){
                         		if(self.pos.partners.length == 0 || self.pos.partners.length == undefined){
                         			self.pos.partners = result;
                 	                self.pos.db.add_partners(result);
+                	                self.render_list(result);
                         		}
-                        		self.render_list(result);
                         	}else {
                         		return console.info("Customer not found.");
                         	}
@@ -418,7 +429,8 @@ odoo.define('pos_prod_load_background.pos', function (require) {
     				        	event.preventDefault();
     			           }
     			       });
-	            }else if(customers.length === 0 && (customer_load.length != 0 || self.pos.partners_load)){
+	            }/*else if(customers.length === 0 && (customer_load.length != 0 || self.pos.partners_load)){
+	            	alert("else iffffff");
 //	            	call when customers are loaded and if new customer created in backend
 
 	            	var domain = [['name', 'ilike', query],['customer', '=', true]];
@@ -441,7 +453,7 @@ odoo.define('pos_prod_load_background.pos', function (require) {
     				        	event.preventDefault();
     			           }
     			       });
-	            }else{
+	            }*/else {
 	            	this.render_list(customers);
 	            }
 	        }else{

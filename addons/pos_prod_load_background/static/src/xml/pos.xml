@@ -6,6 +6,14 @@
             Sync Products
         </span>
     </t>
+    
+    <t t-extend="ClientListScreenWidget">
+        <t t-jquery="span.back" t-operation="after">
+            <t t-if="!widget.pos.partners_load">
+                <span class="cust_loading" style="color : red">Loading...</span>
+            </t>
+        </t>
+    </t>
 
     <t t-extend="ProductListWidget">
         <t t-jquery="div.product-list" t-operation="after">
@@ -13,6 +21,14 @@
                 <div id="loading" align="center" style="font-size:20px;vertical-align:middle;">
                     <img src="/pos_prod_load_background/static/src/img/loader.gif/" />
                 <br/>Loading...</div>
+            </t>
+        </t>
+    </t>
+    
+    <t t-extend="ActionpadWidget">
+        <t t-jquery="t[t-if='!widget.pos.get_client()']" t-operation="after">
+            <t t-if="!widget.pos.partners_load">
+                <br/><span class="cust_loading" style="color : red">Loading...</span>
             </t>
         </t>
     </t>
