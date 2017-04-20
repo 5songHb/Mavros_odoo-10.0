@@ -63,7 +63,7 @@ class DataSet(http.Controller):
         domain = [('customer', '=', True)];
         Model = kw.get('model')
         try:
-            records = request.env[Model].search_read(domain)
+            records = request.env[Model].sudo().search_read(domain)
         except Exception, e:
             print "\n Error......", e
         return simplejson.dumps(records)
