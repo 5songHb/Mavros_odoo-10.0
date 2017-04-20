@@ -7,6 +7,8 @@ _build/
 !.mailmap
 # compiled python files
 *.py[co]
+# Json files
+*.json
 # setup.py egg_info
 *.egg-info
 # emacs backup files
