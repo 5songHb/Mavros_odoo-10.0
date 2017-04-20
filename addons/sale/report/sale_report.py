@@ -42,6 +42,7 @@ class SaleReport(models.Model):
         ], string='Status', readonly=True)
     weight = fields.Float('Gross Weight', readonly=True)
     volume = fields.Float('Volume', readonly=True)
+    brand = fields.Many2one('product.brand', 'Brand', readonly=True)
 
     def _select(self):
         select_str = """
@@ -68,6 +69,7 @@ class SaleReport(models.Model):
                     s.project_id as analytic_account_id,
                     s.team_id as team_id,
                     p.product_tmpl_id,
+                    t.brand as brand,
                     partner.country_id as country_id,
                     partner.commercial_partner_id as commercial_partner_id,
                     sum(p.weight * l.product_uom_qty / u.factor * u2.factor) as weight,
@@ -84,6 +86,7 @@ class SaleReport(models.Model):
                             left join product_template t on (p.product_tmpl_id=t.id)
                     left join product_uom u on (u.id=l.product_uom)
                     left join product_uom u2 on (u2.id=t.uom_id)
+                    left join product_brand b on (b.id=t.brand)
                     left join product_pricelist pp on (s.pricelist_id = pp.id)
                     left join currency_rate cr on (cr.currency_id = pp.currency_id and
                         cr.company_id = s.company_id and
@@ -98,6 +101,7 @@ class SaleReport(models.Model):
                     l.order_id,
                     t.uom_id,
                     t.categ_id,
+                    t.brand,
                     s.name,
                     s.date_order,
                     s.partner_id,
