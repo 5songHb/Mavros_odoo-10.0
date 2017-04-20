@@ -33,7 +33,6 @@
              <field name="counted" colspan="4"/>
              <field name="ytd_sales_retail"/>
              <field name="ytd_wholesales"/>
-             <field name="first_barcode"/>
              </group>
 
              <group>
