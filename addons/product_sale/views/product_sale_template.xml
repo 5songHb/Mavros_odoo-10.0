@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<template id="report_product_sale_template">
+	<t t-call="report.html_container">
+	<xpath expr="//t[@t-call='report.html_external_layout']" position="replace">
+	<div class="header">
+		<div class="row">
+			<table border='0' width="100%">
+				<tr>
+					<td>Mavros Ltd</td>
+					<td class="text-right" style="font-weight:bold;">Stock As Of: </td>
+					<td style="color:white">a</td> 
+					<td> <t t-esc="time.strftime('%Y-%m-%d')"/></td>
+					<td class="text-right">DATE: <t t-esc="time.strftime('%Y-%m-%d')"/></td>
+				</tr>
+				<tr>
+					<td><![CDATA[&nbsp;]]></td>
+					<td style="font-weight:bold;" class="text-right">Sales From:</td>
+					<td style="color:white">a</td>
+					<td><t t-esc="data['start_date']"/></td>
+					<td><![CDATA[&nbsp;]]></td>
+				</tr>
+				<tr>
+					<td><![CDATA[&nbsp;]]></td>
+					<td style="font-weight:bold;" class="text-right">Sales To:</td>
+					<td style="color:white">a</td>
+					<td><t t-esc="data['end_date']"/></td>
+					<td><![CDATA[&nbsp;]]></td>
+				</tr>
+			</table>
+		</div>
+		<table border='0' width="100%" style='margin-top:8px'>
+			<thead>
+				<tr>
+					<th><![CDATA[&nbsp;]]></th>
+					<th><![CDATA[&nbsp;]]></th>
+					<th colspan='3' style="text-align:center">SALES</th>
+					<th colspan="4" style="text-align:center">STOCK</th>
+					<th>Total</th>
+					<th><![CDATA[&nbsp;]]></th>
+					<th><![CDATA[&nbsp;]]></th>
+					<th><![CDATA[&nbsp;]]></th>
+					<th><![CDATA[&nbsp;]]></th>
+				</tr>
+				<tr style="font-size:10pt">
+					<th style="width:10%">Code</th>
+					<th style="width:21%">Description</th>
+					<th style="width:5%">whl</th>
+					<th style="width:5%">Ret</th>
+					<th style="width:1%"><![CDATA[&nbsp;]]></th>
+					<th style="width:4%">str</th>
+					<th style="width:4%">Kaz</th>
+					<th style="width:4%">Led</th>
+					<th style="width:1%"><![CDATA[&nbsp;]]></th>
+					<th style="width:7%">Stock</th>
+					<th style="width:6%">Retail</th>
+					<th style="width:6%" class="text-center">Adv</th>
+					<th style="width:15%" class="text-center">Brand</th>
+					<th style="width:4%">Year</th>
+					<th style="width:7%"  class="text-right">Value</th>
+				</tr>
+			</thead>
+		</table>
+	</div>
+	
+	<div class="page">
+		<div>
+			<t t-if="data['data_list']">
+			<t t-foreach="data['data_list']" t-as="dl">
+				<div style="font-weight:bold;"><t t-esc="dl['categ_name']"/></div>
+				<br/>
+				<table border='0' width='100%'>
+					<t t-foreach="dl['products']" t-as="pr">
+						<tr style="font-size:10pt">
+							<td style="width:10%"><t t-esc="pr['code']"/></td>
+							<td style="width:21%"><t t-esc="pr['name']"/></td>
+							<td style="width:5%" ><t t-esc="pr['wh']"/></td>
+							<td style="width:5%" ><t t-esc="pr['ret']"/></td>
+							<td style="width:1%;border-left:1px solid;"><![CDATA[&nbsp;]]></td>
+							<td style="width:4%" class="text-center"><t t-esc="pr['str']"/></td>
+							<td style="width:4%" class="text-center"><t t-esc="pr['kaz']"/></td>
+							<td style="width:4%;" class="text-center"><t t-esc="pr['led']"/></td>
+							<td style="width:1%;border-left:1px solid;"><![CDATA[&nbsp;]]></td>
+							<td style="width:7%" class="text-center"><t t-esc="pr['total_stock']"/></td>
+							<td style="width:6%" class="text-center"><t t-esc="pr['retail']"/></td>
+							<td style="width:6%" class="text-center"><t t-esc="pr['advertized']"/></td>
+							<td style="width:15%" class="text-center"><t t-esc="pr['brand']"/></td>
+							<td style="width:4%"><t t-esc="pr['year']"/></td>
+							<td style="width:7%" class="text-right"><t t-esc="pr['value']"/></td>
+						</tr>
+					</t>
+				</table>
+				<br/>
+				<table width="100%" style="page-break-inside:avoid;">
+					<tr>
+						<td width="25%"><![CDATA[&nbsp;]]></td>
+						<td width="12%" style="border-top:1px solid;border-left:1px solid;" ><![CDATA[&nbsp;]]></td>
+						<td width="13%" style="border-top:1px solid;"><![CDATA[&nbsp;]]></td>
+						<td width="35%" style="font-weight:bold;border-top:1px solid;" class="text-right"><t t-esc="dl['categ_name']"/>   Sales</td>
+						<td width="15%" style="font-weight:bold;border-top:1px solid;border-right:1px solid;" class="text-right"><t t-esc="dl['total_sale']"/></td>
+					</tr>
+					<tr>
+						<td width="25%"><![CDATA[&nbsp;]]></td>
+						<td width="12%" class="text-right" style="font-weight:bold;border-left:1px solid;border-bottom:1px solid;">GP</td>
+						<td width="13%" class="text-center" style="font-weight:bold;border-bottom:1px solid;" ><t t-esc="dl['total_gp']"/></td>
+						<td width="35%" class="text-right" style="border-bottom:1px solid;" >Margin Based on Invoice Cost</td>
+						<td width="15%" class="text-right" style="font-weight:bold;border-bottom:1px solid;border-right:1px solid;" ><t t-esc="dl['total_inv_cost']"/> %</td>
+					</tr>
+				</table>
+			</t>
+			</t>
+			<br/><br/>
+			<t t-if="data['total']">
+				<t t-foreach="data['total']" t-as="tot">
+				<table width="100%">
+					<tr>
+						<td width="25%"><![CDATA[&nbsp;]]></td>
+						<td width="12%" ><![CDATA[&nbsp;]]></td>
+						<td width="13%" ><![CDATA[&nbsp;]]></td>
+						<td width="35%" style="font-weight:bold;" class="text-right">Total Sales</td>
+						<td width="15%" style="font-weight:bold;" class="text-right"><t t-esc="tot['total_sale']"/></td>
+					</tr>
+					<tr>
+						<td width="25%"><![CDATA[&nbsp;]]></td>
+						<td width="12%" class="text-right" style="font-weight:bold;">GP</td>
+						<td width="13%" class="text-center" style="font-weight:bold;" ><t t-esc="tot['total_gp']"/></td>
+						<td width="35%" class="text-right">Margin on Total Sales Based on Invoice Cost</td>
+						<td width="15%" class="text-right" style="font-weight:bold;" ><t t-esc="tot['total_inv_cost']"/> %</td>
+					</tr>
+				</table>
+			</t>
+			</t>
+		</div>
+	</div>
+	<div class="footer">
+        <div style="font-weight:bold;margin-right:25px;" class="text-right"><span class="page"/></div>
+	</div>
+	</xpath>
+	</t>
+</template>
+
+</odoo>

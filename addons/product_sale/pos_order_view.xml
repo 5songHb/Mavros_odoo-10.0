@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<data>
+		<!-- <record id="pos_order_line_form_inhered_view" model="ir.ui.view">
+			<field name="name">pos.order.line.form.inhered.view</field>
+			<field name="model">pos.order.line</field>
+			<field name="inherit_id" ref="point_of_sale.view_pos_pos_form"/>
+			<field name="arch" type="xml">
+				<xpath expr="//form/sheet/notebook/page[1]/field[@name='lines']/tree/field[@name='price_subtotal']" position="replace">
+					<field name="price_subtotal" widget="monetary"/>
+				</xpath> 	
+				<xpath expr="//form/sheet/notebook/page[1]/field[@name='lines']/form/group[1]/field[@name='price_subtotal']" position="replace">
+					<field name="price_subtotal" invisible="1" widget="monetary"/>
+				</xpath> 
+			</field>
+		</record> -->
+		
+		<record id="pos_order_line_tree_inhered_view" model="ir.ui.view">
+			<field name="name">pos.order.line.tree.inhered.view</field>
+			<field name="model">pos.order.line</field>
+			<field name="inherit_id" ref="point_of_sale.view_pos_order_line"/>
+			<field name="arch" type="xml">
+				<field name="price_subtotal" position="replace">
+					<field name="price_subtotal" readonly="1" sum="Sum of subtotals" widget="monetary"/>
+				</field>
+			</field>
+		</record>
+	</data>
+</odoo>
