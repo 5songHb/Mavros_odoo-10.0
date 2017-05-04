@@ -4,6 +4,10 @@
 from odoo import models, fields, api
 from datetime import date,datetime,timedelta
 
+total_gp = 0.0
+total_sale = 0.0
+total_inv_cost = 0.0
+
 class product_sale(models.TransientModel):
     
     _name = 'product.sale'
@@ -37,7 +41,7 @@ class product_sale(models.TransientModel):
         res = res and res[0] or {}
         datas['form'] = res
         datas['dataline'] = self.get_dataline()
-        datas['total'] = self.get_total()
+        datas['total'] = [{'total_gp':total_gp,'total_sale':total_sale,'total_inv_cost':total_inv_cost}]
         return self.env['report'].get_action([],'product_sale.report_product_sale_template',data=datas)
     
     def get_all_child_categ(self,categ_id):
@@ -50,20 +54,8 @@ class product_sale(models.TransientModel):
                 all_list.append(s.id)
         return all_list
     
-    def get_total(self):
-        total_gp = 0
-        total_sale = 0
-        total_inv_cost = 0
-        dataline = self.get_dataline()
-        if dataline:
-            for data in dataline:
-                total_gp += data['total_gp']
-                total_sale += data['total_sale']
-            if total_sale > 0:
-                total_inv_cost = round((total_gp/total_sale)*100,2)
-        return [{'total_gp':total_gp,'total_sale':total_sale,'total_inv_cost':total_inv_cost}]
-    
     def get_dataline(self):
+        global total_gp,total_inv_cost,total_sale
         categ_id_list = []
         prod_categ_ids = self.env['product.category'].search([('parent_id','=',False)])
         if self.level == 1:
@@ -107,6 +99,43 @@ class product_sale(models.TransientModel):
         all_pos_order = [pos.name for pos in pos_data]
         final_gp = 0.0
         final_sale = 0.0
+        inv_query_data1 = []
+        pos_query_data1 = []
+        if self.include_wh:
+            if not customer_list: #T
+                if all_pos_order:
+                    self.env.cr.execute('select invl.product_id ,sum(invl.price_subtotal) as ivalue, sum(invl.quantity) as qty from account_invoice_line invl, account_invoice inv'\
+    " where inv.id = invl.invoice_id and inv.state not in ('draft','cancel') and inv.type in ('out_invoice','out_refund') and (inv.origin not in %s or inv.origin is NULL) and inv.date>= %s and inv.date <=%s group by product_id ",([tuple(all_pos_order),self.start_date,self.end_date]))
+                else:
+                    self.env.cr.execute('select invl.product_id ,sum(invl.price_subtotal) as ivalue, sum(invl.quantity) as qty from account_invoice_line invl, account_invoice inv'\
+    " where inv.id = invl.invoice_id and inv.state not in ('draft','cancel') and inv.type in ('out_invoice','out_refund') and inv.date>= %s and inv.date <=%s  group by product_id ",([self.start_date,self.end_date]))
+            else:
+                self.env.cr.execute('select invl.product_id ,sum(invl.price_subtotal) as ivalue, sum(invl.quantity) as qty from account_invoice_line invl, account_invoice inv'\
+    " where inv.id = invl.invoice_id and inv.partner_id in %s and inv.state not in ('draft','cancel') and inv.type in ('out_invoice','out_refund') and (inv.origin not in %s or inv.origin is NULL) and inv.date>= %s and inv.date <=%s group by product_id ",([tuple(customer_list),tuple(all_pos_order),self.start_date,self.end_date]))
+            inv_query_data1 = self.env.cr.fetchall()
+            
+        if self.include_retail:
+            next_date = datetime.strptime(self.end_date, "%Y-%m-%d") + timedelta(days=1)
+            if not customer_list: #T
+               self.env.cr.execute('select posl.product_id ,sum(posl.price_subtotal) as ivalue, sum(posl.qty) as qty from pos_order_line posl, pos_order pos'\
+" where pos.id = posl.order_id and pos.state not in ('draft','cancel') and pos.date_order >= %s and pos.date_order <=%s group by product_id ",([self.start_date,next_date]))
+            else:
+               self.env.cr.execute('select posl.product_id ,sum(posl.price_subtotal) as ivalue, sum(posl.qty) as qty from pos_order_line posl, pos_order pos'\
+" where pos.id = posl.order_id and pos.partner_id in %s and pos.state not in ('draft','cancel') and pos.date_order >= %s and pos.date_order <= %s and group by product_id ",([tuple(customer_list),self.start_date,next_date]))
+            pos_query_data1 = self.env.cr.fetchall()  
+        product_dict1 = {}
+        if inv_query_data1:            
+            for inv in inv_query_data1:                
+                product_dict1[inv[0]] = [inv[1],inv[2]]
+        if pos_query_data1:
+            for pos in pos_query_data1:
+                if product_dict1.has_key(pos[0]):
+                    product_dict1[pos[0]] = product_dict1[pos[0]] + [pos[1],pos[2]]
+                else:
+                    product_dict1[pos[0]] = [0,0,pos[1],pos[2]]
+        for p in product_dict1:
+            if len(product_dict1[p]) < 4:
+                product_dict1[p] = product_dict1[p] + [0,0]
         for categ in categ_id_list:
             temp_dict = {
                          'categ_name': '',
@@ -173,108 +202,74 @@ class product_sale(models.TransientModel):
             cat_gp = 0.0
             cat_sale = 0.0
             for product in products:
-               
-                product_dict = {
-                            'name' : '-',
-                            'code' : '-',
-                            'wh' : '-',
-                            'ret' : '-',
-                            'str' : '-',
-                            'kaz' : '-',
-                            'led' : '-',
-                            'total_stock' : 0,
-                            'retail' : '-',
-                            'advertized' : '-',
-                            'brand' : '-',
-                            'year' : '-',
-                            'value' : 0 
-                            }
-                
-                '''quantity of each location '''
-                locations = self.env['stock.location'].search([('usage','=','internal')])
-                location_ids = [location.id for location in locations]
-                self.env.cr.execute("select product_id, location_id ,sum(qty) from stock_quant where product_id=%s"\
-                ' and location_id in %s group by product_id,location_id ',([product.id,tuple(location_ids)]))
-                location_data = self.env.cr.fetchall()
-                if location_data:
-                    product_dict.update({'str':location_data[0][2]})
-                    product_dict.update({'total_stock': product_dict['total_stock']+location_data[0][2]})
-                    if len(location_data) == 2:
-                        product_dict.update({'kaz':location_data[1][2],})
-                        product_dict.update({'total_stock': product_dict['total_stock']+location_data[1][2]})
-                    if len(location_data) == 3:
-                        product_dict.update({'led':location_data[2][2],'kaz':location_data[1][2],})
-                        product_dict.update({'total_stock': product_dict['total_stock']+location_data[2][2]+location_data[1][2]})
-                if product_dict['total_stock'] == 0:
-                    product_dict.update({'total_stock':'-'})
-                inv_query_data = []
-                pos_query_data = []
-                ''' sale details '''
-                if self.include_wh:
-                    if not customer_list: #T
-                        if all_pos_order:
-                            self.env.cr.execute('select invl.product_id ,sum(invl.price_subtotal) as ivalue, sum(invl.quantity) as qty from account_invoice_line invl, account_invoice inv'\
-    " where inv.id = invl.invoice_id and inv.state not in ('draft','cancel') and inv.origin not in %s and inv.date>= %s and inv.date <=%s and invl.product_id=%s group by product_id ",([tuple(all_pos_order),self.start_date,self.end_date,product.id]))
-                        else:
-                            self.env.cr.execute('select invl.product_id ,sum(invl.price_subtotal) as ivalue, sum(invl.quantity) as qty from account_invoice_line invl, account_invoice inv'\
-    " where inv.id = invl.invoice_id and inv.state not in ('draft','cancel') and inv.date>= %s and inv.date <=%s and invl.product_id=%s group by product_id ",([self.start_date,self.end_date,product.id]))
+                if product_dict1.has_key(product.id):
+                    product_dict = {
+                                'name' : '-',
+                                'code' : '-',
+                                'wh' : '-',
+                                'ret' : '-',
+                                'str' : '-',
+                                'kaz' : '-',
+                                'led' : '-',
+                                'total_stock' : 0,
+                                'retail' : '-',
+                                'advertized' : '-',
+                                'brand' : '-',
+                                'year' : '-',
+                                'value' : 0 
+                                }
+                    
+                    '''quantity of each location '''
+                    locations = self.env['stock.location'].search([('usage','=','internal')])
+                    location_ids = [location.id for location in locations]
+                    self.env.cr.execute("select product_id, location_id ,sum(qty) from stock_quant where product_id=%s"\
+                    ' and location_id in %s group by product_id,location_id ',([product.id,tuple(location_ids)]))
+                    location_data = self.env.cr.fetchall()
+                    if location_data:
+                        product_dict.update({'str':location_data[0][2]})
+                        product_dict.update({'total_stock': product_dict['total_stock']+location_data[0][2]})
+                        if len(location_data) == 2:
+                            product_dict.update({'kaz':location_data[1][2],})
+                            product_dict.update({'total_stock': product_dict['total_stock']+location_data[1][2]})
+                        if len(location_data) == 3:
+                            product_dict.update({'led':location_data[2][2],'kaz':location_data[1][2],})
+                            product_dict.update({'total_stock': product_dict['total_stock']+location_data[2][2]+location_data[1][2]})
+                    if product_dict['total_stock'] == 0:
+                        product_dict.update({'total_stock':'-'})
+                    inv_query_data = []
+                    pos_query_data = []
+                    ''' sale details '''
+                    if self.include_wh:
+                        product_dict.update({'wh':product_dict1[product.id][1],'value':product_dict1[product.id][0]})
+                    if self.include_retail:
+                        product_dict.update({'ret':product_dict1[product.id][3],'value':product_dict1[product.id][2]})
+                    if self.include_wh and not self.include_retail:
+                        if product_dict['value']:
+                            cat_sale += product_dict['value']
+                            cat_gp += (product_dict['value'] - (product.standard_price * product_dict1[product.id][1]))
+                    if not self.include_wh and self.include_retail:
+                        if product_dict['value']:
+                            cat_sale += product_dict['value']
+                            cat_gp += (product_dict['value'] - (product.standard_price * product_dict1[product.id][3]))
+                    if self.include_wh and self.include_retail:
+                        # aadd valeee
+                        product_dict.update({'value':(product_dict1[product.id][2] + product_dict1[product.id][0])})
+                        if product_dict['value']:
+                            cat_sale += product_dict['value']
+                            cat_gp += (product_dict['value'] - (product.standard_price * (product_dict1[product.id][1] + product_dict1[product.id][3])))
+                    
+                    product_dict.update({'name': product.name})
+                    product_dict.update({'code':product.default_code})                
+                    product_dict.update({'retail':product.list_price})
+                    if product.brand:
+                        product_dict.update({'brand': product.brand.name})
+                    if product.manufacturer:
+                        product_dict.update({'year':product.manufacturer})
+                    if not self.no_sale:
+                        if product_dict['value'] > 0:
+                            product_list.append(product_dict)
                     else:
-                        self.env.cr.execute('select invl.product_id ,sum(invl.price_subtotal) as ivalue, sum(invl.quantity) as qty from account_invoice_line invl, account_invoice inv'\
-" where inv.id = invl.invoice_id and inv.partner_id in %s and inv.state not in ('draft','cancel') and inv.origin not in %s and inv.date>= %s and inv.date <=%s and invl.product_id=%s group by product_id ",([tuple(customer_list),tuple(all_pos_order),self.start_date,self.end_date,product.id]))
-                        '''selected customerr'''
-                    inv_query_data = self.env.cr.fetchall()                    
-                    if inv_query_data:
-                        product_dict.update({'wh':inv_query_data[0][2],'value':inv_query_data[0][1]})
-                if self.include_retail:
-                    next_date = datetime.strptime(self.end_date, "%Y-%m-%d") + timedelta(days=1)
-                    if not customer_list: #T
-                        self.env.cr.execute('select posl.product_id ,sum(posl.price_subtotal) as ivalue, sum(posl.qty) as qty from pos_order_line posl, pos_order pos'\
- " where pos.id = posl.order_id and pos.state not in ('draft','cancel') and pos.date_order >= %s and pos.date_order <=%s and posl.product_id=%s group by product_id ",([self.start_date,next_date,product.id]))
-                    else:
-                        self.env.cr.execute('select posl.product_id ,sum(posl.price_subtotal) as ivalue, sum(posl.qty) as qty from pos_order_line posl, pos_order pos'\
- " where pos.id = posl.order_id and pos.partner_id in %s and pos.state not in ('draft','cancel') and pos.date_order >= %s and pos.date_order <= %s and posl.product_id=%s group by product_id ",([tuple(customer_list),self.start_date,next_date,product.id]))
-                    pos_query_data = self.env.cr.fetchall()  
-                    if pos_query_data:                  
-                        product_dict.update({'ret':pos_query_data[0][2],'value':pos_query_data[0][1]})
-                if self.include_wh and not self.include_retail:
-                    if product_dict['value']:
-                        cat_sale += product_dict['value']
-                        cat_gp += (product_dict['value'] - (product.standard_price * inv_query_data[0][2]))
-                if not self.include_wh and self.include_retail:
-                    if product_dict['value']:
-                        cat_sale += product_dict['value']
-                        cat_gp += (product_dict['value'] - (product.standard_price * pos_query_data[0][2]))
-                if self.include_wh and self.include_retail:
-                    # aadd valeee
-                    if pos_query_data and inv_query_data:
-                        product_dict.update({'value':(pos_query_data[0][1] + inv_query_data[0][1])})
-                        if product_dict['value']:
-                            cat_sale += product_dict['value']
-                            cat_gp += (product_dict['value'] - (product.standard_price * (pos_query_data[0][2] + inv_query_data[0][2])))
-                    elif pos_query_data:
-                        product_dict.update({'value':(pos_query_data[0][1])})
-                        if product_dict['value']:
-                            cat_sale += product_dict['value']
-                            cat_gp += (product_dict['value'] - (product.standard_price * (pos_query_data[0][2])))
-                    elif inv_query_data:
-                        product_dict.update({'value':(inv_query_data[0][1])})
-                        if product_dict['value']:
-                            cat_sale += product_dict['value']
-                            cat_gp += (product_dict['value'] - (product.standard_price * (inv_query_data[0][2])))
-                
-                product_dict.update({'name': product.name})
-                product_dict.update({'code':product.default_code})                
-                product_dict.update({'retail':product.list_price})
-                if product.brand:
-                    product_dict.update({'brand': product.brand.name})
-                if product.manufacturer:
-                    product_dict.update({'year':product.manufacturer})
-                #product_dict.update({'value':product.standard_price})
-                if not self.no_sale:
-                    if product_dict['value'] > 0:
                         product_list.append(product_dict)
-                else:
-                    product_list.append(product_dict)
             if product_list:
                 temp_dict['total_gp'] = cat_gp
                 temp_dict['total_sale'] = cat_sale
@@ -282,6 +277,10 @@ class product_sale(models.TransientModel):
                     temp_dict['total_inv_cost'] = round((cat_gp/cat_sale)*100,2)
                 else:
                     temp_dict['total_inv_cost'] = 0.0
+                total_gp += temp_dict['total_gp']
+                total_sale += temp_dict['total_sale']
+                if total_sale > 0:
+                    total_inv_cost = round((total_gp/total_sale)*100,2)
                 temp_dict['products'] = product_list
                 final_list.append(temp_dict)
         return final_list
