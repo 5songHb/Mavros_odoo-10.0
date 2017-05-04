@@ -48,7 +48,7 @@ class DataSet(http.Controller):
         context = dict(context)
         context.update(ctx1)
         try:
-            records = request.env[Model].with_context(context).search_read(domain, fields, limit=1000)
+            records = request.env[Model].with_context(context).search_read(domain, fields,limit=1000)
         except Exception, e:
             _logger.error('Error .... %s',e)
         return simplejson.dumps(records)
@@ -63,7 +63,7 @@ class DataSet(http.Controller):
         domain = [('customer', '=', True)];
         Model = kw.get('model')
         try:
-            records = request.env[Model].sudo().search_read(domain)
+            records = request.env[Model].sudo().search_read(domain, fields)
         except Exception, e:
             print "\n Error......", e
         return simplejson.dumps(records)

@@ -41,6 +41,7 @@ odoo.define('pos_prod_load_background.pos', function (require) {
 	            this.product_domain = [];
 	            this.product_context = {};
 	            this.partner_fields = [];
+	            this.partner_domain = [];
 	    },
 		fetch: function(model, fields, domain, ctx){
             this._load_progress = (this._load_progress || 0) + 0.05; 
@@ -79,6 +80,7 @@ odoo.define('pos_prod_load_background.pos', function (require) {
                         self.product_context = $.extend(self.product_context, context)
                     } else if(model.model && model.model == 'res.partner') {
                     	self.partner_fields = self.partner_fields.concat(model.fields);
+                    	self.partner_domain = self.partner_domain.concat(model.domain);
                     }
                     progress += progress_step;
                    
@@ -232,7 +234,7 @@ odoo.define('pos_prod_load_background.pos', function (require) {
 	        var products;
 	        var self = this;
 	        if(query){
-	            products = this.pos.db.search_product_in_category(category.id,query);
+	            products = this.pos.db.search_product_in_category(category.id, query);
 	            if(buy_result && products.length === 1){
                     this.pos.get_order().add_product(products[0]);
                     this.clear_search();
@@ -241,9 +243,9 @@ odoo.define('pos_prod_load_background.pos', function (require) {
                         //Multi Barcode Search
 	            		var product_barcode_ids = []
 	            		product_barcode_ids.push(self.pos.db.get_barcode_id_by_name(query));
-	            		var domain = [['sale_ok','=',true],['available_in_pos','=',true], '|', '|',['name', 'ilike', query], ['barcode', 'ilike', query], ['barcode_product_ids', 'in', product_barcode_ids]];
+	            		var domain = [['sale_ok','=',true],['available_in_pos','=',true], '|', '|', '|', ['name', 'ilike', query], ['default_code', 'ilike', query], ['barcode', 'ilike', query], ['barcode_product_ids', 'in', product_barcode_ids]];
 	                	var model = new Model("product.product");
-	            		var fields = ['display_name', 'list_price','price','pos_categ_id', 'taxes_id', 'barcode', 'default_code',
+	            		var fields = ['display_name', 'list_price', 'lst_price','price','pos_categ_id', 'taxes_id', 'barcode', 'default_code',
 	            		                 'to_weight', 'uom_id', 'description_sale', 'description',
 	            		                 'product_tmpl_id', 'barcode_product_ids','tracking'];
 	            		var context = {
@@ -292,8 +294,11 @@ odoo.define('pos_prod_load_background.pos', function (require) {
 			$.ajax({
 	            type: "GET",
 	            url: '/web/dataset/load_customers',
-	            data: {model: 'res.partner',
-            		   fields: JSON.stringify(self.pos.product_fields)},
+	            data: {
+	                model: 'res.partner',
+	                domain:JSON.stringify(self.pos.partner_domain),
+                    fields: JSON.stringify(self.pos.partner_fields)
+                },
 	            success: function(res) {
 	                self.pos.partners = JSON.parse(res);
 	                self.pos.partners_load = true;
@@ -334,6 +339,7 @@ odoo.define('pos_prod_load_background.pos', function (require) {
 	        	this.render_list(partners);
 	        } else {
 	        	this.render_list([]);
+	        	self.pos.partners = [];
 	        }
 	        
 
@@ -373,7 +379,7 @@ odoo.define('pos_prod_load_background.pos', function (require) {
 			var self = this;
 	        var contents = this.$el[0].querySelector('.client-list-contents');
 	        contents.innerHTML = "";
-	        if(partners.length > 0){
+	        if(partners.length > 0 || this.pos.partners_load){
 		        for(var i = 0, len = Math.min(partners.length,1000); i < len; i++){
 		            var partner    = partners[i];
 		            var clientline = this.partner_cache.get_node(partner.id);
@@ -413,14 +419,14 @@ odoo.define('pos_prod_load_background.pos', function (require) {
                 	var model = new Model("res.partner");
             		var fields = self.pos.partner_fields ? self.pos.partner_fields :
             			['name','street','city','state_id','country_id','vat','phone','zip','mobile','email','barcode','write_date'];
-            		model.call("search_read", [domain=domain, fields=fields]).pipe(
-                        function(result) {
+            		model.call("search_read", [domain=domain, fields=fields])
+            		.then(function(result) {
                         	if(result.length > 0){
-                        		if(self.pos.partners.length == 0 || self.pos.partners.length == undefined){
+//                        		if(self.pos.partners.length == 0 || self.pos.partners.length == undefined){
                         			self.pos.partners = result;
                 	                self.pos.db.add_partners(result);
                 	                self.render_list(result);
-                        		}
+//                        		}
                         	}else {
                         		return console.info("Customer not found.");
                         	}
@@ -537,10 +543,10 @@ odoo.define('pos_prod_load_background.pos', function (require) {
 		scan: function(code){
             self = this;
             if(code.length > 3){
-                if (this.pos.product_list.length == 0) {
+                if (!self.pos.db.get_is_product_load()) {
                     var product_barcode_ids = []
 	            	product_barcode_ids.push(self.pos.db.get_barcode_id_by_name(code));
-                    var fields = ['display_name', 'list_price','price','pos_categ_id', 'taxes_id', 'ean13', 'default_code',
+                    var fields = ['display_name', 'list_price','lst_price','price','pos_categ_id', 'taxes_id', 'ean13', 'default_code',
                                   'to_weight', 'uom_id', 'uos_id', 'uos_coeff', 'mes_type', 'description_sale', 'description',
                                   'product_tmpl_id', 'tracking'];
                     //Multi Barcode Search
@@ -551,7 +557,7 @@ odoo.define('pos_prod_load_background.pos', function (require) {
                     }
                     var offset;
                     new Model("product.product").get_func("search_read")(domain=domain, fields=fields, offset=0, false, false, context=context)
-                        .pipe(function(result) {
+                        .then(function(result) {
                             if (result[0]) {
                                 self.pos.get_order().add_product(result[0]);
                             } else {
@@ -630,7 +636,6 @@ odoo.define('pos_prod_load_background.pos', function (require) {
             return this.user_by_barcode[barcode];
         },
         add_products: function(products){
-        	
             var stored_categories = this.product_by_category_id;
             var new_write_date = '';
             var product;
@@ -639,10 +644,15 @@ odoo.define('pos_prod_load_background.pos', function (require) {
             }
             for(var i = 0, len = products.length; i < len; i++){
                 var product = products[i];
-                product.price = product.list_price;
-//                if(this.get_product_by_id(product.id)){
-//                    continue;
+//                if(product.lst_price){
+//                    product.price = product.lst_price;
+//                } else {
+//                    product.price = product.list_price;
 //                }
+
+                if(this.get_product_by_id(product.id)){
+                    continue;
+                }
                 var search_string = this._product_search_string(product);
                 var categ_id = product.pos_categ_id ? product.pos_categ_id[0] : this.root_category_id;
                 product.product_tmpl_id = product.product_tmpl_id[0];
@@ -804,7 +814,7 @@ odoo.define('pos_prod_load_background.pos', function (require) {
                         pricelist: self.pos.pricelist.id, 
                         display_default_code: false, 
                     }
-            	var fields = ['display_name', 'list_price','price','pos_categ_id', 'taxes_id', 'barcode', 'default_code',
+            	var fields = ['display_name', 'lst_price','price','pos_categ_id', 'taxes_id', 'barcode', 'default_code',
                          'to_weight', 'uom_id', 'description_sale', 'description',
                          'product_tmpl_id','tracking','write_date', 'barcode_product_ids'];
  	           var offset;
@@ -827,7 +837,7 @@ odoo.define('pos_prod_load_background.pos', function (require) {
                 		   })
 	                		self.pos.db.add_products(products);
 	                		products.map(function(product){
-        						$("[data-product-id='"+product.id+"']").find('.price-tag').html(self.format_currency(product.list_price));
+        						$("[data-product-id='"+product.id+"']").find('.price-tag').html(self.format_currency(product.lst_price));
         						$("[data-product-id='"+product.id+"']").find('.product-name').html(product.display_name);
         					});
 	                	}
@@ -846,6 +856,9 @@ odoo.define('pos_prod_load_background.pos', function (require) {
 	screens.define_action_button({
         'name': 'SyncProduct',
         'widget': SyncProduct,
+        'condition': function(){
+            return false;
+        },
     });
 
 });
