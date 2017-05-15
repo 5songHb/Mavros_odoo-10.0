@@ -8,3 +8,9 @@ class pos_order_line(models.Model):
     _inherit = "pos.order.line"
     
     price_subtotal = fields.Float(compute='_compute_amount_line_all', digits=0, string='Subtotal w/o Tax',store=True)
+    
+class stock_quant_inherited(models.Model):
+    
+    _inherit = "stock.quant"
+    
+    inventory_value = fields.Float('Inventory Value', compute='_compute_inventory_value', readonly=True,store=True)
