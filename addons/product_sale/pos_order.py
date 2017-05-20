@@ -13,4 +13,4 @@ class stock_quant_inherited(models.Model):
     
     _inherit = "stock.quant"
     
-    inventory_value = fields.Float('Inventory Value', compute='_compute_inventory_value', readonly=True,store=True)
+    inventory_value = fields.Float('Inventory Value', compute='_compute_inventory_value',store=False)
