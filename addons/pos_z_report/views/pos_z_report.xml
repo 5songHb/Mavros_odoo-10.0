@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="pos_z_report1" model="ir.actions.report.xml">
+	        <field name="name">POS Z Report</field>
+	        <field name="model">pos.z</field>
+	        <field name="report_type">qweb-pdf</field>
+	        <field name="report_name">pos_z_report.report_pos_z</field>
+    	</record>
+    	
+    </data>
+</odoo>

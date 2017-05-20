@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<template id="report_pos_z">
+	<t t-call="report.html_container">
+	<xpath expr="//t[@t-call='report.html_external_layout']" position="replace">
+	<div class="header">
+		<div class="row">
+			<div>
+				<p style="text-align:center">POS Z OUT REPORT</p>
+			</div>
+			<div style="font-weight:bold;font-size=25pt;margin-left:23px;">
+				<u>MAVROS LTD</u>
+			</div>
+			<br/>			
+		</div>
+	</div>
+		<div class="page">
+			<table border='0' width="100%">
+				<tr>
+					<td style="color:white;width:2%;">a</td>
+					<td style="width:5%;font-weight:bold;font-size=10pt;"> Date: </td>
+					<td style="color:white;width:1%;">a</td> 
+					<td style="width:20%;font-size=10pt;"> <t t-esc="data['date']"/> </td>
+					<td style="width:17%;"><![CDATA[&nbsp;]]></td>
+					<td style="width:17%;"><![CDATA[&nbsp;]]></td>
+					<td style="width:10%;"><![CDATA[&nbsp;]]></td>
+					<td style="width:28%;font-weight:bold;font-size=10pt;" rowspan='2'>
+						<div style="border-radius: 25px;border:solid black 2px;padding:4px;">
+							<table>
+								<tr>
+									<td>TOTAL Z</td>
+									<td style="color:white;width:2%;">aaa</td>
+									<td><t t-esc="res_company.currency_id.symbol"/><t t-esc="data['total']"/></td>
+								</tr>
+							</table>
+						</div>
+					</td>
+					<td style="color:white;width:2%;">a</td>
+				</tr>
+				<tr>
+					<td style="color:white;width:2%;">a</td>
+					<td style="width:5%;font-weight:bold;font-size=10pt;"> Store: </td>
+					<td style="color:white;width:1%;">a</td> 
+					<td style="width:20%;font-size=10pt;"> <t t-esc="data['location']"/> </td>
+					<td style="width:17%;"><![CDATA[&nbsp;]]></td>
+					<td style="width:17%;"><![CDATA[&nbsp;]]></td>
+					<td style="width:10%;"><![CDATA[&nbsp;]]></td>
+					<td style="color:white;width:2%;">a</td>
+				</tr>
+			</table>
+			<div class="text-right">
+				<table style="width:100%">				
+					<tr t-foreach="data['cashier_total']" t-as="o">
+						<td style="width:72%;"><![CDATA[&nbsp;]]></td>
+						<td style="width:13%;"><t t-esc="o['name']"/></td>
+						<td style="width:0.2%;"><![CDATA[&nbsp;]]></td>
+						<td style="width:15%;"><t t-esc="res_company.currency_id.symbol"/><t t-esc="o['total']"/></td>
+					</tr>
+				</table>
+			</div>
+			<br/>
+			<div style="width:100%">
+					<div style="border-radius: 25px;border:solid black 2px;padding:8px;">
+						<p>JOURNAL NUMBER ____________________</p>					
+						<table style="width:99%">
+							<thead>
+								<tr>
+									<th style="width:22%;font-weight:bold;font-size=10pt;border-right:1px solid;">ACCOUNT NUM</th>
+									<th style="width:2%;"><![CDATA[&nbsp;]]></th>
+									<th style="width:40%;font-weight:bold;font-size=10pt;border-right:1px solid;">ACCOUNT DESCRIPTION</th>
+									<th style="width:2%;"><![CDATA[&nbsp;]]></th>
+									<th class="text-center" style="width:16%;font-weight:bold;font-size=10pt;border-right:1px solid;">DEBIT</th>
+									<th style="width:2%;"><![CDATA[&nbsp;]]></th>
+									<th class="text-center" style="width:18%;font-weight:bold;font-size=10pt;border-right:1px solid;">CREDIT</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr style="height:5%">
+									<td style="width:22%;border-right:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td style="width:2%;"><![CDATA[&nbsp;]]></td>
+									<td style="width:40%;border-right:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td style="width:2%;"><![CDATA[&nbsp;]]></td>
+									<td style="width:16%;border-right:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td style="width:2%;"><![CDATA[&nbsp;]]></td>
+									<td style="width:18%;border-right:1px solid;"><![CDATA[&nbsp;]]></td>
+								</tr>
+								<tr>
+									<td style="width:22%;font-weight:bold;font-size=10pt;border-bottom:1px solid;border-right:1px solid;">A1110</td>
+									<td style="width:2%;border-bottom:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td style="width:40%;font-weight:bold;font-size=10pt;border-bottom:1px solid;border-right:1px solid;">CASH A/C</td>
+									<td style="width:2%;border-bottom:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td class="text-center" style="width:16%;font-weight:bold;font-size=10pt;border-bottom:1px solid;border-right:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td style="width:2%;border-bottom:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td class="text-center" style="width:18%;font-weight:bold;font-size=10pt;border-right:1px solid;border-bottom:1px solid;"><t t-esc="res_company.currency_id.symbol"/><t t-esc="data['total']"/></td>
+								</tr>
+								<tr t-foreach="range(0,14)" t-as="l">
+									<td style="width:22%;border-right:1px solid;border-bottom:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td style="width:2%;border-bottom:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td style="width:40%;border-right:1px solid;border-bottom:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td style="width:2%;border-bottom:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td style="width:16%;border-right:1px solid;border-bottom:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td style="width:2%;border-bottom:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td style="width:18%;border-right:1px solid;border-bottom:1px solid;"><![CDATA[&nbsp;]]></td>
+								</tr>
+								<tr style="height:15%">
+									<td style="width:22%;"><![CDATA[&nbsp;]]></td>
+									<td style="width:2%;"><![CDATA[&nbsp;]]></td>
+									<td style="width:40%;"><![CDATA[&nbsp;]]></td>
+									<td style="width:2%;border-bottom:1px solid;border-left:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td style="width:16%;border-bottom:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td style="width:2%;border-bottom:1px solid;border-left:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td style="width:18%;border-right:1px solid;border-bottom:1px solid;border-left:1px;"><![CDATA[&nbsp;]]></td>
+								</tr>
+								<tr t-foreach="range(0,4)" t-as="a">
+									<td style="width:22%;"><![CDATA[&nbsp;]]></td>
+									<td style="width:2%;"><![CDATA[&nbsp;]]></td>
+									<td style="width:40%;"><![CDATA[&nbsp;]]></td>
+									<td style="width:2%;"><![CDATA[&nbsp;]]></td>
+									<td style="width:16%;"><![CDATA[&nbsp;]]></td>
+									<td style="width:2%;"><![CDATA[&nbsp;]]></td>
+									<td style="width:18%;"><![CDATA[&nbsp;]]></td>
+								</tr>
+								<tr>
+									<td colspan="7">Prepared By______________________________________________on the__/__/__
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+			</div>
+			<p style="page-break-after:always;"/>			
+			<div style="width:100%">
+				<t t-foreach="data['cashier_total']" t-as="o">
+					<table border='0' width="100%">
+						<tr>
+							<td style="color:white;width:2%;">a</td>
+							<td style="width:5%;font-weight:bold;font-size=10pt;"> Date: </td>
+							<td style="color:white;width:1%;">a</td> 
+							<td style="width:20%;font-size=10pt;"> <t t-esc="data['date']"/> </td>
+							<td style="width:17%;"><![CDATA[&nbsp;]]></td>
+							<td style="width:17%;"><![CDATA[&nbsp;]]></td>
+							<td style="width:10%;"><![CDATA[&nbsp;]]></td>
+							<td style="width:28%;font-weight:bold;font-size=10pt;" rowspan='2'>
+								<div style="border-radius: 25px;border:solid black 2px;padding:4px;">
+									<table>
+										<tr>
+											<td>TOTAL Z</td>
+											<td style="color:white;width:2%;">aaa</td>
+											<td><t t-esc="res_company.currency_id.symbol"/><t t-esc="o['total']"/></td>
+										</tr>
+									</table>
+								</div>
+							</td>
+							<td style="color:white;width:2%;">a</td>
+						</tr>
+						<tr>
+							<td style="color:white;width:2%;">a</td>
+							<td style="width:5%;font-weight:bold;font-size=10pt;"> Store: </td>
+							<td style="color:white;width:1%;">a</td> 
+							<td style="width:20%;font-size=10pt;"> <t t-esc="data['location']"/> </td>
+							<td style="width:17%;"><![CDATA[&nbsp;]]></td>
+							<td style="width:17%;"><![CDATA[&nbsp;]]></td>
+							<td style="width:10%;"><![CDATA[&nbsp;]]></td>
+							<td style="color:white;width:2%;">a</td>
+						</tr>
+					</table>
+					<div class="text-right">
+						<table style="width:100%">				
+							<tr>
+								<td style="width:72%;"><![CDATA[&nbsp;]]></td>
+								<td style="width:10%;"><t t-esc="o['name']"/></td>
+								<td style="width:0.2%;"><![CDATA[&nbsp;]]></td>
+								<td style="width:15%;"><t t-esc="res_company.currency_id.symbol"/><t t-esc="o['total']"/></td>
+								<td style="width:3%;"><![CDATA[&nbsp;]]></td>
+							</tr>
+						</table>
+					</div>
+					<br/>
+					<div style="border-radius: 25px;border:solid black 2px;padding:8px;">
+						<p>JOURNAL NUMBER ____________________</p>					
+						<table style="width:99%">
+							<thead>
+								<tr>
+									<th style="width:22%;font-weight:bold;font-size=10pt;border-right:1px solid;">ACCOUNT NUM</th>
+									<th style="width:2%;"><![CDATA[&nbsp;]]></th>
+									<th style="width:40%;font-weight:bold;font-size=10pt;border-right:1px solid;">ACCOUNT DESCRIPTION</th>
+									<th style="width:2%;"><![CDATA[&nbsp;]]></th>
+									<th class="text-center" style="width:16%;font-weight:bold;font-size=10pt;border-right:1px solid;">DEBIT</th>
+									<th style="width:2%;"><![CDATA[&nbsp;]]></th>
+									<th class="text-center" style="width:18%;font-weight:bold;font-size=10pt;border-right:1px solid;">CREDIT</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr style="height:5%">
+									<td style="width:22%;border-right:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td style="width:2%;"><![CDATA[&nbsp;]]></td>
+									<td style="width:40%;border-right:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td style="width:2%;"><![CDATA[&nbsp;]]></td>
+									<td style="width:16%;border-right:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td style="width:2%;"><![CDATA[&nbsp;]]></td>
+									<td style="width:18%;border-right:1px solid;"><![CDATA[&nbsp;]]></td>
+								</tr>
+								<tr>
+									<td style="width:22%;font-weight:bold;font-size=10pt;border-bottom:1px solid;border-right:1px solid;">A1110</td>
+									<td style="width:2%;border-bottom:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td style="width:40%;font-weight:bold;font-size=10pt;border-bottom:1px solid;border-right:1px solid;">CASH A/C</td>
+									<td style="width:2%;border-bottom:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td class="text-center" style="width:16%;font-weight:bold;font-size=10pt;border-bottom:1px solid;border-right:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td style="width:2%;border-bottom:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td class="text-center" style="width:18%;font-weight:bold;font-size=10pt;border-right:1px solid;border-bottom:1px solid;"><t t-esc="res_company.currency_id.symbol"/><t t-esc="o['total']"/></td>
+								</tr>
+								<tr t-foreach="range(0,14)" t-as="l">
+									<td style="width:22%;border-right:1px solid;border-bottom:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td style="width:2%;border-bottom:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td style="width:40%;border-right:1px solid;border-bottom:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td style="width:2%;border-bottom:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td style="width:16%;border-right:1px solid;border-bottom:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td style="width:2%;border-bottom:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td style="width:18%;border-right:1px solid;border-bottom:1px solid;"><![CDATA[&nbsp;]]></td>
+								</tr>
+								<tr style="height:15%">
+									<td style="width:22%;"><![CDATA[&nbsp;]]></td>
+									<td style="width:2%;"><![CDATA[&nbsp;]]></td>
+									<td style="width:40%;"><![CDATA[&nbsp;]]></td>
+									<td style="width:2%;border-bottom:1px solid;border-left:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td style="width:16%;border-bottom:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td style="width:2%;border-bottom:1px solid;border-left:1px solid;"><![CDATA[&nbsp;]]></td>
+									<td style="width:18%;border-right:1px solid;border-bottom:1px solid;border-left:1px;"><![CDATA[&nbsp;]]></td>
+								</tr>
+								<tr t-foreach="range(0,4)" t-as="a">
+									<td style="width:22%;"><![CDATA[&nbsp;]]></td>
+									<td style="width:2%;"><![CDATA[&nbsp;]]></td>
+									<td style="width:40%;"><![CDATA[&nbsp;]]></td>
+									<td style="width:2%;"><![CDATA[&nbsp;]]></td>
+									<td style="width:16%;"><![CDATA[&nbsp;]]></td>
+									<td style="width:2%;"><![CDATA[&nbsp;]]></td>
+									<td style="width:18%;"><![CDATA[&nbsp;]]></td>
+								</tr>
+								<tr>
+									<td colspan="7">Prepared By______________________________________________on the__/__/__
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<p style="page-break-after:always;"/>
+				</t>
+			</div>
+		</div>	
+		
+	<div class="footer">
+        <div style="font-weight:bold;margin-right:25px;" class="text-right"><span class="page"/></div>
+	</div>
+	
+	</xpath>
+	</t>
+</template>
+
+</odoo>

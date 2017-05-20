@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<data>
+		<record id="pos_z_report_form_view" model="ir.ui.view">
+			<field name="name">pos.z.form.view</field>
+			<field name="model">pos.z</field>
+			<field name="arch" type="xml">
+				<form string="POS Z">
+					<group string="Filter Data">
+						<field name="date"/>
+						<field name="location_id"/>
+					</group>		
+					<footer>
+						<button string='Print' name="print_report" type="object" class="btn-primary"/>
+						<button special="cancel" string="cancel"/>
+					</footer>				
+				</form>
+				
+			</field>
+		</record>
+		
+		<record id="pos_z_report_action" model="ir.actions.act_window">
+            <field name="name">POS Z</field>
+            <field name="res_model">pos.z</field>
+            <field name="view_mode">form</field>
+            <field name="view_type">form</field>
+            <field name="target">new</field>
+        </record>
+        
+        <menuitem id="pos_z_report" string="POS Z" action="pos_z_report_action" parent="point_of_sale.menu_point_rep"/>
+	</data>
+</odoo>
