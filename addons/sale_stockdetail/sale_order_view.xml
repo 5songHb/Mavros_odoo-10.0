@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<data>
+		
+		<record id="sale_order_inherits" model="ir.ui.view">
+			<field name="name">sale.order.inherits</field>
+			<field name="model">sale.order</field>
+			<field name="inherit_id" ref="sale.view_order_form"/>
+			<field name="arch" type="xml">
+				<xpath expr="//field[@name='order_line']/tree/field[@name='product_id']" position="before">
+					<button name="%(total_stock_action)d" type="action" string="Stock Details" icon="fa-gear"/>
+					<field name="stock"/>
+					<field name="is_str" invisible='1'/>
+					<field name="is_chr" invisible='1'/>
+					<field name="is_kaz" invisible='1'/>
+					<field name="is_led" invisible='1'/>
+					<field name="whr"/>
+					<field name="str" invisible="1"/>
+					<field name="chr" invisible='1'/>
+					<field name="kaz" invisible='1'/>
+					<field name="led" invisible='1'/>
+				</xpath>
+			</field>
+		</record>
+		
+	</data>
+</odoo>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<data>
+		<record id="total_stock_form_view" model="ir.ui.view">
+			<field name="name">total_stock.form.view</field>
+			<field name="model">total.stock</field>
+			<field name="arch" type="xml">
+				<form string="Stock Details">
+					<group string="Stock Details">
+						<field name="str"/>
+						<field name="chr"/>
+						<field name="kaz"/>
+						<field name="led"/>
+						<field name="stock"/>
+					</group>
+					<footer>
+						<button special='cancel' string="cancel" class='oe_link'/>
+					</footer>
+				</form>
+			</field>
+		</record>
+		
+		<record id="total_stock_action" model="ir.actions.act_window">
+            <field name="name">Stock Details</field>
+            <field name="res_model">total.stock</field>
+            <field name="view_mode">form</field>
+            <field name="view_type">form</field>
+            <field name="target">new</field>
+        </record>
+        
+	</data>
+</odoo>
