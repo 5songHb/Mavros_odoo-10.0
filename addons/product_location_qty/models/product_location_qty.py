@@ -22,61 +22,28 @@ from openerp import models,fields,api,_
 
 
 class product_template(models.Model):
+    
     _inherit = 'product.template'
 
     @api.multi
-    def comput_search_qty_base_on_location(self):
+    def _get_loc_stock(self):
         for each in self:
-            for ware in self.env['stock.warehouse'].search([]):
-                if each.id:
-                    ctx = {'warehouse': ware.id, 'product_id': each.id}
-                compute_qty = each.with_context(ctx)._compute_quantities_dict()
-                for loc_id,value in compute_qty.items():
-                        location_name = ware.lot_stock_id.customise_name
-                        if location_name:
-                            customise_name = location_name.upper()
-                            if customise_name.startswith('STR'):
-                                each.str_qty = value.get('qty_available')
-                            elif customise_name.startswith('KAZ'):
-                                each.kaz_qty = value.get('qty_available')
-                            elif customise_name.startswith('LED'):
-                                each.led_qty = value.get('qty_available')
-
-    str_qty = fields.Integer("STR Qty" , compute = comput_search_qty_base_on_location)
-    kaz_qty = fields.Integer("KAZ Qty" , compute = comput_search_qty_base_on_location)
-    led_qty = fields.Integer("LED Qty" , compute = comput_search_qty_base_on_location)
-
-class product_product(models.Model):
-    _inherit = 'product.product'
-
-    @api.multi
-    def comput_search_qty_base_on_location(self):
-        for each in self:
-            for ware in self.env['stock.warehouse'].search([]):
-                if each.id:
-                    ctx = {'warehouse': ware.id, 'product_id': each.id}
-                compute_qty = each.with_context(ctx)._compute_quantities_dict(lot_id=False, owner_id=False, package_id=False, from_date=False, to_date=False)
-                for loc_id,value in compute_qty.items():
-                        location_name = ware.lot_stock_id.customise_name
-                        if location_name:
-                            customise_name = location_name.upper()
-                            if customise_name.startswith('STR'):
-                                each.str_qty = value.get('qty_available')
-                            elif customise_name.startswith('KAZ'):
-                                each.kaz_qty = value.get('qty_available')
-                            elif customise_name.startswith('LED'):
-                                each.led_qty = value.get('qty_available')
-
-
-    str_qty = fields.Integer("STR Qty" , compute = comput_search_qty_base_on_location)
-    kaz_qty = fields.Integer("KAZ Qty" , compute = comput_search_qty_base_on_location)
-    led_qty = fields.Integer("LED Qty" , compute = comput_search_qty_base_on_location)
-
-
-class stock_location(models.Model):
-    _inherit = "stock.location"
-
-    customise_name = fields.Char("Customise Name")
-
+            locations = self.env['stock.location'].search([('usage','=','internal')])
+            if locations:
+                for l in locations:
+                    total = 0
+                    quant_ids = self.env['stock.quant'].search([('product_id','=',each.id),('location_id','=',l.id)])
+                    for q in quant_ids:
+                        total += q.qty
+                    if str(l.name_get()[0][1]).lower().find("str") >= 0:
+                        each.str_qty = total
+                    if str(l.name_get()[0][1]).lower().find("kaz") >= 0:
+                        each.kaz_qty = total
+                    if str(l.name_get()[0][1]).lower().find("led") >= 0:
+                        each.led_qty = total
+                
+    str_qty = fields.Integer("STR Qty" , compute=_get_loc_stock)
+    kaz_qty = fields.Integer("KAZ Qty" , compute=_get_loc_stock)
+    led_qty = fields.Integer("LED Qty" , compute=_get_loc_stock)
 
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:
