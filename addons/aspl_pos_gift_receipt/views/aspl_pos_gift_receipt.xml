@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- vim:fdn=3:-->
+<openerp>
+    <data>
+
+        <template id="assets_backend" name="aspl_pos_gift_receipt assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <script type="text/javascript" src="/aspl_pos_gift_receipt/static/src/js/pos.js"></script>
+                <script type="text/javascript" src="/aspl_pos_gift_receipt/static/src/js/jquery-barcode.js"></script>
+            </xpath>
+        </template>
+
+    </data>
+</openerp>
