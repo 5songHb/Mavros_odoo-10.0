@@ -28,5 +28,6 @@
         </record>
         
         <menuitem id="pos_z_report" string="POS Z" action="pos_z_report_action" parent="point_of_sale.menu_point_rep"/>
+        <menuitem id="pos_z_report_in_account" string="POS Z" action="pos_z_report_action" parent="account.menu_finance_legal_statement"/>
 	</data>
 </odoo>

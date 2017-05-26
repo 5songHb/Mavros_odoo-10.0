@@ -21,6 +21,7 @@
     'data': [
              'views/pos_z_template.xml',
              'views/pos_z_report.xml',   
+             'views/pos_report_format.xml',
              'wizard/pos_z_report_view.xml',
     ],
 }

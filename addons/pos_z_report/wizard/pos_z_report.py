@@ -37,14 +37,11 @@ class product_sale(models.TransientModel):
             for order in self.env['pos.order'].search([('config_id','=',location.id),('date_order','>=',self.date),('date_order','<',next_date)]):
                 loc['total'] += order.amount_total
                 total += order.amount_total
-            loc_list.append(loc)
+            if loc['total'] > 0:
+                loc_list.append(loc)
         for l in loc_list:
             if l['total'] >= 0:
                 l['total'] = locale.currency(l['total'],grouping=True)[1:]
-            else:
-                l['total'] = '-' + locale.currency(l['total'],grouping=True)[2:]
         if total >= 0:
             final_dict.update({'total':locale.currency(total,grouping=True)[1:],'cashier_total':loc_list})
-        else:
-            final_dict.update({'total':'-' + locale.currency(total,grouping=True)[2:],'cashier_total':loc_list})
         return final_dict
