@@ -27,6 +27,41 @@ class product_template(models.Model):
 
     @api.multi
     def _get_loc_stock(self):
+        for each in self.search([]):
+            self.env.cr.execute('with prodtmpl as'\
+ '('\
+ ' select pp.product_tmpl_id,pp.id from product_template pt'\
+ ' inner join product_product pp on pp.product_tmpl_id = pt.id'\
+ ' where pt.id = %s and pp.active = True'\
+ ')'\
+ ' select  p.product_tmpl_id,sum(s.qty),s.location_id from stock_quant s'\
+ ' inner join prodtmpl p on p.id = s.product_id'\
+ " inner join stock_location l on l.id = s.location_id and l.usage='internal'" \
+ ' group by p.product_tmpl_id,s.location_id',(each.id,)
+ )
+            query_data = self.env.cr.fetchall()
+            for query in query_data:
+                locations = self.env['stock.location'].search([('usage','=','internal')])
+                if locations:
+                    for l in locations:
+                        if query[2] == l.id:
+                            if str(l.name_get()[0][1]).lower().find("str") >= 0:
+                                each.str_qty = query[1]
+                            if str(l.name_get()[0][1]).lower().find("kaz") >= 0:
+                                each.kaz_qty = query[1]
+                            if str(l.name_get()[0][1]).lower().find("led") >= 0:
+                                each.led_qty = query[1]
+                
+    str_qty = fields.Integer("STR Qty" , compute=_get_loc_stock)
+    kaz_qty = fields.Integer("KAZ Qty" , compute=_get_loc_stock)
+    led_qty = fields.Integer("LED Qty" , compute=_get_loc_stock)
+
+class product_product1(models.Model):
+    
+    _inherit = 'product.product'
+
+    @api.multi
+    def _get_loc_stock1(self):
         for each in self:
             locations = self.env['stock.location'].search([('usage','=','internal')])
             if locations:
@@ -36,14 +71,13 @@ class product_template(models.Model):
                     for q in quant_ids:
                         total += q.qty
                     if str(l.name_get()[0][1]).lower().find("str") >= 0:
-                        each.str_qty = total
+                        each.pstr_qty = total
                     if str(l.name_get()[0][1]).lower().find("kaz") >= 0:
-                        each.kaz_qty = total
+                        each.pkaz_qty = total
                     if str(l.name_get()[0][1]).lower().find("led") >= 0:
-                        each.led_qty = total
+                        each.pled_qty = total
                 
-    str_qty = fields.Integer("STR Qty" , compute=_get_loc_stock)
-    kaz_qty = fields.Integer("KAZ Qty" , compute=_get_loc_stock)
-    led_qty = fields.Integer("LED Qty" , compute=_get_loc_stock)
-
+    pstr_qty = fields.Integer("STR Qty" , compute=_get_loc_stock1)
+    pkaz_qty = fields.Integer("KAZ Qty" , compute=_get_loc_stock1)
+    pled_qty = fields.Integer("LED Qty" , compute=_get_loc_stock1)
 # vim:expandtab:smartindent:tabstop=4:softtabstop=4:shiftwidth=4:

@@ -21,9 +21,9 @@
             <field name="inherit_id" ref="product.product_product_tree_view"/>
             <field name="arch" type="xml">
                 <field name="barcode" position="after">
-                    <field name="str_qty"/>
-                    <field name="kaz_qty"/>
-                    <field name="led_qty"/>
+                    <field name="pstr_qty"/>
+                    <field name="pkaz_qty"/>
+                    <field name="pled_qty"/>
                 </field>
             </field>
         </record>
