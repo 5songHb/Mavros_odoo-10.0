@@ -102,11 +102,11 @@ class Partner(models.Model):
 
     _inherit= "res.partner"
     
-    level = fields.Many2one('customer.level',string="Level")
+    # level = fields.Many2one('customer.level',string="Level")
     consignment_amount = fields.Integer("On Consignment Amount")
     credit_limit = fields.Float("Credit Limit")
     customer_children = fields.One2many('child.birtthday','partner_id',string="Children")
-    customer_type = fields.Selection([('wholesale','Wholesale Customer'),('retail', 'Retail Customer')],'Customer Type')
+    # customer_type = fields.Selection([('wholesale','Wholesale Customer'),('retail', 'Retail Customer')],'Customer Type')
     offer_type = fields.One2many('customer.group.discount','customer_offer_id',string='Discount Type')
     customer_form_num = fields.Char('Form Num')
 
@@ -117,12 +117,12 @@ class Partner(models.Model):
 
 
 
-class Customer_Level(models.Model):
+# class Customer_Level(models.Model):
 
-    _name="customer.level"
+#     _name="customer.level"
     
 
-    name = fields.Char("Level name")
+#     name = fields.Char("Level name")
 
 
 class Child_Birthday(models.Model):

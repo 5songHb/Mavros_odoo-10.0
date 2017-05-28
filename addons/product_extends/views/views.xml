@@ -88,17 +88,17 @@
                            <field name="customer_form_num"/>
                            <field name="credit_limit"/>
                             <field name="property_payment_term_id" widget="selection"/>
-                            <field name="level"/>
+                            <!-- <field name="level"/> -->
                             <field name="consignment_amount"/>
                         </group>
-
+<!-- 
                         <group>
                           <field name="customer_type"/>
-                        </group>
+                        </group> -->
                         <group>
                           <field name="property_product_pricelist" groups="product.group_sale_pricelist" attrs="{'invisible': [('is_company','=',False),('parent_id','!=',False)]}"/>
                         </group>
-           <separator string="Customer Discounts"/>  
+<!--            <separator string="Customer Discounts"/>  
           <field name="offer_type">
             <tree editable="bottom">
               <field name="group_name"/>
@@ -106,7 +106,7 @@
               <field name="product_brand"/>
               <field name="product_category" />
             </tree>
-          </field>
+          </field> -->
            <separator string="Children Birthday"/>
             <field name="customer_children">
               <tree editable="bottom">
