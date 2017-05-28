@@ -64,6 +64,8 @@
                 <field name="partner_id"/>
                 <field name="product_id"/>
                 <field name="user_id"/>
+                <field name="brand"/>
+                <field name="manufacturer"/>
                 <group expand="0" string="Extended Filters">
                     <field name="categ_id" filter_domain="[('categ_id', 'child_of', self)]"/>
                     <field name="company_id" groups="base.group_multi_company"/>
