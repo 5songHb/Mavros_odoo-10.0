@@ -37,6 +37,8 @@ class PosOrderReport(models.Model):
     stock_location_id = fields.Many2one('stock.location', string='Warehouse', readonly=True)
     pricelist_id = fields.Many2one('product.pricelist', string='Pricelist', readonly=True)
     session_id = fields.Many2one('pos.session', string='Session', readonly=True)
+    brand = fields.Many2one('product.brand', 'Brand', readonly=True)
+    manufacturer = fields.Char('Year',readonly=True,)
 
     @api.model_cr
     def init(self):
@@ -68,7 +70,9 @@ class PosOrderReport(models.Model):
                     pc.stock_location_id,
                     s.pricelist_id,
                     s.session_id,
-                    s.invoice_id IS NOT NULL AS invoiced
+                    s.invoice_id IS NOT NULL AS invoiced,
+                    pt.brand as brand,
+                    pt.manufacturer as manufacturer
                 FROM pos_order_line AS l
                     LEFT JOIN pos_order s ON (s.id=l.order_id)
                     LEFT JOIN product_product p ON (l.product_id=p.id)
@@ -76,6 +80,7 @@ class PosOrderReport(models.Model):
                     LEFT JOIN product_uom u ON (u.id=pt.uom_id)
                     LEFT JOIN pos_session ps ON (s.session_id=ps.id)
                     LEFT JOIN pos_config pc ON (ps.config_id=pc.id)
+                    LEFT JOIN product_brand b on (b.id=pt.brand)
                 GROUP BY
                     s.id, s.date_order, s.partner_id,s.state, pt.categ_id,
                     s.user_id, s.location_id, s.company_id, s.sale_journal,
@@ -84,7 +89,9 @@ class PosOrderReport(models.Model):
                     pt.categ_id, pt.pos_categ_id,
                     p.product_tmpl_id,
                     ps.config_id,
-                    pc.stock_location_id
+                    pc.stock_location_id,
+                    pt.brand,
+                    pt.manufacturer 
                 HAVING
                     SUM(l.qty * u.factor) != 0
             )
